@@ -59,14 +59,27 @@ not be collapsed: `palette` is the decorative three-swatch strip on the card;
 in the details panel. They may differ. Functional values are held to WCAG
 minimums — foreground 4.5:1 and cursor 3:1 against background.
 
+**Environment recommendations.** Every theme carries an `environments` list of
+optional internal recommendations, assigned in one table (`ENVIRONMENTS` in
+`app/themes.py`). Supported values: `production`, `uat`, `development`, `dr`,
+`maintenance`, `neutral`. A theme may have zero, one, or two — an empty list is
+valid and common, and a theme is listed only where its palette genuinely suits
+that context. **This field is not displayed anywhere**: no badge, label,
+tooltip, filter, or search term. It is recorded for possible future filtering.
+
 **Seasonal rotation.** Every theme carries `active`, `season`
 (`permanent` / `spring` / `summer` / `autumn` / `winter`) and `display_order`.
 Only `active` themes render, ordered by `display_order`. There is no
 scheduling logic, no date reading, and no visible season filter — rotating a
 set later means editing those data values only.
 
+Both seasonal rotation and environment recommendations are controlled purely
+through theme data — no scheduling, no UI, no code changes needed to revise
+either.
+
 Run `python validate_themes.py --table` after any theme edit. It checks
-schema, uniqueness, RGB/hex agreement, moods, seasons, and contrast.
+schema, uniqueness, RGB/hex agreement, moods, seasons, environments, and
+contrast.
 
 ## Configuration
 

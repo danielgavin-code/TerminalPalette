@@ -21,6 +21,13 @@ season filter.
 
 VALID_SEASONS = {"permanent", "spring", "summer", "autumn", "winter"}
 
+# Internal-only environment recommendations. Never rendered, never filtered on,
+# never exposed in the interface — see ENVIRONMENTS below.
+VALID_ENVIRONMENTS = {
+    "production", "uat", "development", "dr", "maintenance", "neutral",
+}
+MAX_ENVIRONMENTS = 2
+
 # (key, display label, sprite icon) — keys are the normalised internal ids.
 MOOD_DEFS = [
     ("focused", "Focused", "target"),
@@ -60,6 +67,8 @@ def _theme(display_order, theme_id, name, description, moods, category,
         "season": season,
         "featured": featured,
         "display_order": display_order,
+        # Filled in from ENVIRONMENTS once THEMES is built. Empty is valid.
+        "environments": [],
     }
 
 
@@ -147,8 +156,8 @@ THEMES = [
     _theme(14, "arctic-glass", "Arctic Glass",
            "Pale cyan-gray background with a teal cursor.",
            ["cool", "minimal"], "Cool",
-           "#EDF3F4", "#2E3639", "#3F7180",
-           ["#EDF3F4", "#C2D6DA", "#4E8494"],
+           "#E7F3F2", "#2E3639", "#3F7180",
+           ["#E7F3F2", "#C2D6DA", "#4E8494"],
            "Ice under overcast light", "June 9, 2025"),
     _theme(15, "glacier", "Glacier",
            "Pale blue background with a slate blue cursor.",
@@ -276,8 +285,8 @@ THEMES = [
     _theme(35, "desert-clay", "Desert Clay",
            "Pale sand background with a terracotta cursor.",
            ["warm", "minimal"], "Warm",
-           "#F0E7DC", "#3B342C", "#A4633F",
-           ["#F0E7DC", "#D3AF92", "#A4633F"],
+           "#EFE2D2", "#3B342C", "#A4633F",
+           ["#EFE2D2", "#D3AF92", "#A4633F"],
            "Sun-baked clay", "July 28, 2025"),
     # --- 36-40: papers and light consoles ------------------------------
     _theme(36, "parchment", "Parchment",
@@ -307,8 +316,8 @@ THEMES = [
     _theme(40, "ivory-console", "Ivory Console",
            "Ivory background with a muted olive-brown cursor.",
            ["minimal", "warm"], "Minimal",
-           "#F4F1E9", "#35332D", "#6F6950",
-           ["#F4F1E9", "#DCD6C4", "#7A7358"],
+           "#F7EFDA", "#35332D", "#6F6950",
+           ["#F7EFDA", "#DCD6C4", "#7A7358"],
            "Ivory console panels", "August 11, 2025"),
     # --- 41-43: neutral, ruled, and dusk ----------------------------------
     _theme(41, "monochrome", "Monochrome",
@@ -320,8 +329,8 @@ THEMES = [
     _theme(42, "blue-ledger", "Blue Ledger",
            "Pale blue-gray background with a mid-blue cursor.",
            ["cool", "focused", "minimal"], "Cool",
-           "#EDF0F4", "#2F343B", "#4C6B94",
-           ["#EDF0F4", "#BFCBDC", "#4C6B94"],
+           "#EAEEF7", "#2F343B", "#4C6B94",
+           ["#EAEEF7", "#BFCBDC", "#4C6B94"],
            "Blue-ruled ledger paper", "August 11, 2025"),
     _theme(43, "quiet-violet", "Quiet Violet",
            "Dark violet-gray background with a muted purple cursor.",
@@ -329,7 +338,70 @@ THEMES = [
            "#1C1A24", "#D6D2DE", "#8E7CB8",
            ["#1C1A24", "#3A3448", "#8E7CB8"],
            "Dusk light", "August 11, 2025"),
+    # --- 44 --------------------------------------------------------------
+    _theme(44, "closing-bell", "Closing Bell",
+           "Dark charcoal background with restrained red accents.",
+           ["focused", "late-night"], "Late Night",
+           "#1A1614", "#E2DBD3", "#B8503F",
+           ["#1A1614", "#3A2A26", "#B8503F"],
+           "Market close operations", "August 18, 2025"),
 ]
+
+
+# --------------------------------------------------------------------------
+# Environment recommendations — internal metadata only.
+#
+# Kept as one table rather than scattered across the theme entries so the
+# whole mapping can be read and revised in a single place. Themes absent from
+# this table keep an empty list, which is valid and deliberate: a theme is
+# listed only where its palette genuinely suits that context.
+#
+# Nothing here reaches the interface. There is no environment filter, badge,
+# label, or tooltip, and the field is not part of any search index. It exists
+# so the recommendations are recorded for possible future use.
+# --------------------------------------------------------------------------
+ENVIRONMENTS = {
+    # Dark backgrounds with restrained high-attention accents.
+    "closing-bell": ["production"],
+    "trading-floor": ["production"],
+    "copper": ["production"],
+    "charcoal": ["production"],
+    "obsidian": ["production"],
+    # Controlled blue and blue-gray.
+    "blue-ledger": ["uat"],
+    "ocean-glass": ["uat"],
+    "harbor-fog": ["uat"],
+    "steel-blue": ["uat"],
+    "arctic-glass": ["uat"],
+    # Green and natural tones.
+    "evergreen": ["development"],
+    "forest": ["development"],
+    "moss": ["development"],
+    "pine": ["development"],
+    "sage-field": ["development"],
+    # Amber, orange and copper caution tones.
+    "amber-terminal": ["dr"],
+    "autumn-ledger": ["dr"],
+    "desert-clay": ["dr"],
+    "cedar": ["dr"],
+    # Paper and neutral technical palettes for planned work.
+    "terminal-gray": ["maintenance"],
+    "data-center": ["maintenance"],
+    "warm-paper": ["maintenance"],
+    "parchment": ["maintenance"],
+    "typewriter": ["maintenance"],
+    # General-purpose daily drivers.
+    "graphite": ["neutral"],
+    "midnight-blue": ["neutral"],
+    "monochrome": ["neutral"],
+    "ivory-console": ["neutral"],
+    "linen": ["neutral"],
+    "bloomberg-classic": ["neutral"],
+}
+
+for _theme_entry in THEMES:
+    _theme_entry["environments"] = list(ENVIRONMENTS.get(_theme_entry["id"], []))
+del _theme_entry
 
 
 def active_themes():

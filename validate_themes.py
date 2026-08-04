@@ -15,18 +15,37 @@ agreement, valid moods and seasons, unique display order) and WCAG contrast:
 
 import sys
 
-from app.themes import THEMES, VALID_MOODS, VALID_SEASONS, active_themes
+from app.themes import (
+    MAX_ENVIRONMENTS, THEMES, VALID_ENVIRONMENTS, VALID_MOODS, VALID_SEASONS,
+    active_themes,
+)
 
-EXPECTED_COUNT = 43
+EXPECTED_COUNT = 44
 FG_MIN = 4.5
 CURSOR_MIN = 3.0
+FG_PREFERRED = 7.0
 
 REQUIRED = (
     "id", "name", "description", "moods", "category",
     "background", "foreground", "cursor", "palette",
     "inspired_by", "created", "version", "active", "season",
-    "featured", "display_order",
+    "featured", "display_order", "environments",
 )
+
+# Stated independently of app.themes so this verifies the assignments rather
+# than simply echoing them back.
+EXPECTED_ENVIRONMENTS = {
+    "production": {"closing-bell", "trading-floor", "copper", "charcoal",
+                   "obsidian"},
+    "uat": {"blue-ledger", "ocean-glass", "harbor-fog", "steel-blue",
+            "arctic-glass"},
+    "development": {"evergreen", "forest", "moss", "pine", "sage-field"},
+    "dr": {"amber-terminal", "autumn-ledger", "desert-clay", "cedar"},
+    "maintenance": {"terminal-gray", "data-center", "warm-paper", "parchment",
+                    "typewriter"},
+    "neutral": {"graphite", "midnight-blue", "monochrome", "ivory-console",
+                "linen", "bloomberg-classic"},
+}
 
 
 # --- WCAG relative luminance ------------------------------------------------
@@ -110,6 +129,19 @@ def check_schema(themes):
                 errors.append(f"{label}: unknown mood '{mood}'")
         if t["season"] not in VALID_SEASONS:
             errors.append(f"{label}: unknown season '{t['season']}'")
+
+        envs = t["environments"]
+        if not isinstance(envs, list):
+            errors.append(f"{label}: environments must be a list, got {type(envs).__name__}")
+        else:
+            if len(envs) > MAX_ENVIRONMENTS:
+                errors.append(
+                    f"{label}: {len(envs)} environments, max is {MAX_ENVIRONMENTS}")
+            if len(set(envs)) != len(envs):
+                errors.append(f"{label}: duplicate environment values {envs}")
+            for env in envs:
+                if env not in VALID_ENVIRONMENTS:
+                    errors.append(f"{label}: unknown environment '{env}'")
         for field in ("description", "inspired_by", "category", "created", "version"):
             if not str(t[field]).strip():
                 errors.append(f"{label}: '{field}' is empty")
@@ -134,6 +166,35 @@ def check_contrast(themes):
     return errors, rows
 
 
+def check_environments(themes):
+    """Verify the recommendations match the agreed assignment table exactly."""
+    errors = []
+    by_id = {t["id"]: t for t in themes if "id" in t}
+
+    actual = {env: set() for env in VALID_ENVIRONMENTS}
+    for t in themes:
+        for env in t.get("environments", []):
+            if env in actual:
+                actual[env].add(t["id"])
+
+    for env, expected_ids in EXPECTED_ENVIRONMENTS.items():
+        for missing in sorted(expected_ids - actual[env]):
+            errors.append(f"'{missing}' should be assigned to {env}")
+        for extra in sorted(actual[env] - expected_ids):
+            errors.append(f"'{extra}' unexpectedly assigned to {env}")
+        for tid in expected_ids:
+            if tid not in by_id:
+                errors.append(f"{env}: no theme with id '{tid}'")
+
+    bell = by_id.get("closing-bell")
+    if bell is None:
+        errors.append("Closing Bell is missing from the collection")
+    elif "production" not in bell.get("environments", []):
+        errors.append("Closing Bell must include the 'production' environment")
+
+    return errors, actual
+
+
 def check_moods(themes):
     errors = []
     counts = {m: sum(1 for t in themes if m in t.get("moods", [])) for m in VALID_MOODS}
@@ -150,6 +211,7 @@ def main():
     schema_errors = check_schema(THEMES)
     contrast_errors, rows = check_contrast(THEMES)
     mood_errors, counts = check_moods(active)
+    env_errors, env_map = check_environments(THEMES)
 
     if show_table:
         print(f"{'Theme':<20} {'Background':<10} {'Foreground':<10} {'Cursor':<10} "
@@ -161,11 +223,23 @@ def main():
                   f"{fr:>6.2f}:1 {cr:>6.2f}:1{flag}")
         print()
 
+    below_preferred = [(n, fr) for n, _, _, _, fr, _ in rows if fr < FG_PREFERRED]
+
     print(f"themes defined : {len(THEMES)}")
     print(f"active themes  : {len(active)}")
     print(f"mood counts    : " + ", ".join(f"{m}={counts[m]}" for m in sorted(counts)))
+    print("environments   :")
+    for env in sorted(EXPECTED_ENVIRONMENTS):
+        names = sorted(t["name"] for t in THEMES if env in t.get("environments", []))
+        print(f"    {env:<12} {len(names)}  {', '.join(names)}")
+    unassigned = [t["name"] for t in THEMES if not t.get("environments")]
+    print(f"    {'(none)':<12} {len(unassigned)}  {', '.join(sorted(unassigned))}")
+    print(f"foreground >= {FG_PREFERRED}:1 : "
+          f"{len(rows) - len(below_preferred)}/{len(rows)}"
+          + ("" if not below_preferred
+             else "  below: " + ", ".join(f"{n} {r:.2f}:1" for n, r in below_preferred)))
 
-    errors = schema_errors + contrast_errors + mood_errors
+    errors = schema_errors + contrast_errors + mood_errors + env_errors
     if errors:
         print(f"\n{len(errors)} PROBLEM(S):")
         for e in errors:
