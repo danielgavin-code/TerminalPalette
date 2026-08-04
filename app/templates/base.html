@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Terminal Palette{% endblock %}</title>
+  <meta name="description" content="{% block description %}Terminal color schemes built for readable, focused sessions.{% endblock %}">
+  {# Set the appearance before the stylesheet loads so a returning dark-mode
+     user does not see a light flash. The only inline script on the page. #}
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('tp:appearance');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  {% block body %}{% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>
