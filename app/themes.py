@@ -1,176 +1,359 @@
 """Theme data for TerminalPalette.
 
-Single source of truth. These values are rendered into the template and
-serialised once into a JSON script block for the client; they are never
-duplicated in CSS or JS source.
+Single source of truth. Rendered into the template and serialised once into a
+JSON script block for the client; never duplicated in CSS or JS source.
 
-Each theme has:
-    name, slug, description, detail, category, moods[], colors{...}
+Two-tier colour model — intentional, do not collapse:
 
-`description` is the short card line; `detail` is the longer details-panel
-paragraph. `moods` drives the sidebar filters. The three colors are, in order,
-the same values shown in the card colour strip and the details-panel RGB
-groups; hex is the only stored representation.
+  palette                       decorative three-swatch strip on the card
+  background/foreground/cursor  functional PuTTY values in the details panel
+
+The two may differ. The card strip shows the palette; the details panel shows
+the functional values, which are held to WCAG contrast minimums
+(foreground >= 4.5:1, cursor >= 3:1 against background). Run
+`python validate_themes.py --table` to check.
+
+Seasonal rotation: every theme carries `active`, `season` and `display_order`.
+Only active themes are rendered. Rotating a set later means editing those data
+values only — there is no scheduling logic, no date reading, and no visible
+season filter.
 """
 
+VALID_SEASONS = {"permanent", "spring", "summer", "autumn", "winter"}
+
+# (key, display label, sprite icon) — keys are the normalised internal ids.
+MOOD_DEFS = [
+    ("focused", "Focused", "target"),
+    ("calm", "Calm", "leaf"),
+    ("warm", "Warm", "flame"),
+    ("cool", "Cool", "drop"),
+    ("late-night", "Late Night", "moon"),
+    ("minimal", "Minimal", "minimal"),
+    ("vintage", "Vintage", "clock"),
+]
+VALID_MOODS = {key for key, _, _ in MOOD_DEFS}
+
+
+def _c(value):
+    """Expand a hex string into the {hex, rgb} pair used by the UI."""
+    h = value.lstrip("#").upper()
+    return {"hex": "#" + h, "rgb": [int(h[i:i + 2], 16) for i in (0, 2, 4)]}
+
+
+def _theme(display_order, theme_id, name, description, moods, category,
+           background, foreground, cursor, palette, inspired_by, created,
+           featured=False, active=True, season="permanent", version="1.0"):
+    return {
+        "id": theme_id,
+        "name": name,
+        "description": description,
+        "moods": moods,
+        "category": category,
+        "background": _c(background),
+        "foreground": _c(foreground),
+        "cursor": _c(cursor),
+        "palette": [c.upper() for c in palette],
+        "inspired_by": inspired_by,
+        "created": created,
+        "version": version,
+        "active": active,
+        "season": season,
+        "featured": featured,
+        "display_order": display_order,
+    }
+
+
 THEMES = [
-    {
-        "name": "Cape Cod Morning",
-        "slug": "cape-cod-morning",
-        "description": "Light background with muted sage and tan.",
-        "detail": (
-            "A light, low-contrast palette with muted sage and tan accents. "
-            "Suited to long sessions in bright rooms."
-        ),
-        "category": "Warm",
-        "moods": ["Warm", "Calm"],
-        "colors": {
-            "background": "#F2F0E0",
-            "foreground": "#6C786E",
-            "cursor": "#D7A46A",
-        },
-    },
-    {
-        "name": "Bloomberg Classic",
-        "slug": "bloomberg-classic",
-        "description": "Near-black background with green text.",
-        "detail": (
-            "A near-black background with green foreground text and a green "
-            "cursor. Holds contrast at small type sizes."
-        ),
-        "category": "Vintage",
-        "moods": ["Vintage", "Focused"],
-        "colors": {
-            "background": "#050505",
-            "foreground": "#343638",
-            "cursor": "#729C5D",
-        },
-    },
-    {
-        "name": "Ocean Glass",
-        "slug": "ocean-glass",
-        "description": "Desaturated blues on a dark teal base.",
-        "detail": (
-            "A dark teal background with desaturated blue text and a pale blue "
-            "cursor. All three values sit in the same blue-green range."
-        ),
-        "category": "Cool",
-        "moods": ["Cool", "Calm"],
-        "colors": {
-            "background": "#17323E",
-            "foreground": "#477681",
-            "cursor": "#9AC0CA",
-        },
-    },
-    {
-        "name": "Warm Paper",
-        "slug": "warm-paper",
-        "description": "Paper-toned background, low contrast.",
-        "detail": (
-            "A paper-toned background with little separation between background "
-            "and foreground. The cursor sits a step darker than both."
-        ),
-        "category": "Warm",
-        "moods": ["Warm", "Minimal"],
-        "colors": {
-            "background": "#EEE9DF",
-            "foreground": "#D9D0C1",
-            "cursor": "#A99982",
-        },
-    },
-    {
-        "name": "Graphite",
-        "slug": "graphite",
-        "description": "Neutral grays with a blue-gray accent.",
-        "detail": (
-            "Neutral dark grays for background and foreground, with a blue-gray "
-            "cursor. Separation between the two grays is narrow."
-        ),
-        "category": "Minimal",
-        "moods": ["Minimal", "Focused"],
-        "colors": {
-            "background": "#292B2D",
-            "foreground": "#424446",
-            "cursor": "#647785",
-        },
-    },
-    {
-        "name": "Forest",
-        "slug": "forest",
-        "description": "Dark green background with light text.",
-        "detail": (
-            "A dark green background with light neutral text. The cursor is a "
-            "mid-green several steps lighter than the background."
-        ),
-        "category": "Calm",
-        "moods": ["Calm", "Focused"],
-        "colors": {
-            "background": "#213C32",
-            "foreground": "#E5DED1",
-            "cursor": "#749873",
-        },
-    },
-    {
-        "name": "Midnight Blue",
-        "slug": "midnight-blue",
-        "description": "Dark navy with mid-blue accents.",
-        "detail": (
-            "A dark navy background with mid-blue foreground and cursor values. "
-            "All three sit within the same blue range."
-        ),
-        "category": "Late Night",
-        "moods": ["Late Night", "Cool"],
-        "colors": {
-            "background": "#111B2C",
-            "foreground": "#283A59",
-            "cursor": "#42688D",
-        },
-    },
-    {
-        "name": "Amber Terminal",
-        "slug": "amber-terminal",
-        "description": "Dark brown base with amber highlights.",
-        "detail": (
-            "A dark brown background with amber foreground and cursor values, "
-            "after the amber CRT displays it is named for."
-        ),
-        "category": "Vintage",
-        "moods": ["Vintage", "Warm", "Late Night"],
-        "colors": {
-            "background": "#251E17",
-            "foreground": "#724515",
-            "cursor": "#E99800",
-        },
-    },
+    # --- 1-8: the original set, ordering preserved ------------------------
+    _theme(1, "cape-cod-morning", "Cape Cod Morning",
+           "Light background with muted coastal tones.",
+           ["calm", "warm", "minimal"], "Warm",
+           "#F2F0E0", "#3B3A37", "#B07C3A",
+           ["#F2F0E0", "#6C786E", "#D7A46A"],
+           "Cape Cod mornings", "May 18, 2025", featured=True),
+    _theme(2, "bloomberg-classic", "Bloomberg Classic",
+           "Near-black background with green foreground and cursor.",
+           ["focused", "vintage"], "Vintage",
+           "#050505", "#C9C6BE", "#7CA85F",
+           ["#050505", "#343638", "#729C5D"],
+           "Financial data terminals", "May 18, 2025", featured=True),
+    _theme(3, "ocean-glass", "Ocean Glass",
+           "Dark teal background with pale blue foreground and cursor.",
+           ["cool", "calm"], "Cool",
+           "#17323E", "#D3DFE2", "#7FB0BC",
+           ["#17323E", "#477681", "#9AC0CA"],
+           "Sea glass", "May 18, 2025", featured=True),
+    _theme(4, "warm-paper", "Warm Paper",
+           "Paper-toned background with dark brown text.",
+           ["warm", "minimal"], "Warm",
+           "#EEE9DF", "#3A362F", "#8A7A5F",
+           ["#EEE9DF", "#D9D0C1", "#A99982"],
+           "Uncoated paper stock", "May 18, 2025", featured=True),
+    _theme(5, "graphite", "Graphite",
+           "Neutral dark gray background with a blue-gray cursor.",
+           ["minimal", "focused"], "Minimal",
+           "#292B2D", "#C6C9CC", "#7C8F9E",
+           ["#292B2D", "#424446", "#647785"],
+           "Pencil graphite", "May 18, 2025", featured=True),
+    _theme(6, "forest", "Forest",
+           "Dark green background with light neutral text.",
+           ["calm", "focused"], "Calm",
+           "#213C32", "#E5DED1", "#7FA87E",
+           ["#213C32", "#E5DED1", "#749873"],
+           "Northern woodland", "May 18, 2025", featured=True),
+    _theme(7, "midnight-blue", "Midnight Blue",
+           "Dark navy background with muted blue foreground and cursor.",
+           ["late-night", "cool"], "Late Night",
+           "#111B2C", "#C8D2E2", "#5E86B4",
+           ["#111B2C", "#283A59", "#42688D"],
+           "Night sky over water", "May 18, 2025", featured=True),
+    _theme(8, "amber-terminal", "Amber Terminal",
+           "Dark brown background with amber foreground and cursor.",
+           ["vintage", "warm", "late-night"], "Vintage",
+           "#251E17", "#E0C9A6", "#E99800",
+           ["#251E17", "#724515", "#E99800"],
+           "Amber CRT displays", "May 18, 2025", featured=True),
+    # --- 9-18: coastal, then cold water -----------------------------------
+    _theme(9, "harbor-fog", "Harbor Fog",
+           "Pale gray background with slate blue cursor.",
+           ["calm", "cool", "minimal"], "Cool",
+           "#E8E9E7", "#33383A", "#5F7480",
+           ["#E8E9E7", "#B4BDC0", "#6E8089"],
+           "Fog over a harbor", "June 2, 2025"),
+    _theme(10, "atlantic-dawn", "Atlantic Dawn",
+           "Dark blue-gray background with a warm tan cursor.",
+           ["cool", "calm"], "Cool",
+           "#1B2A38", "#DCE2E6", "#C98F5C",
+           ["#1B2A38", "#3E5A70", "#E0A96D"],
+           "First light at sea", "June 2, 2025"),
+    _theme(11, "salt-marsh", "Salt Marsh",
+           "Dark olive-gray background with a muted green cursor.",
+           ["calm", "minimal"], "Calm",
+           "#2A3129", "#DDD9C9", "#9AA86B",
+           ["#2A3129", "#5C6B4C", "#AEB98A"],
+           "Tidal marsh grass", "June 2, 2025"),
+    _theme(12, "coastal-slate", "Coastal Slate",
+           "Dark gray background with a pale blue-green cursor.",
+           ["cool", "minimal", "focused"], "Cool",
+           "#2E3438", "#D2D6D8", "#86A2AC",
+           ["#2E3438", "#55636A", "#93AEB8"],
+           "Wet slate on a shoreline", "June 2, 2025"),
+    _theme(13, "deep-sea", "Deep Sea",
+           "Very dark blue background with a mid-teal cursor.",
+           ["cool", "late-night"], "Cool",
+           "#0E1F2A", "#CBDCE2", "#4E93A6",
+           ["#0E1F2A", "#1F4757", "#3E8296"],
+           "Deep water", "June 9, 2025"),
+    _theme(14, "arctic-glass", "Arctic Glass",
+           "Pale cyan-gray background with a teal cursor.",
+           ["cool", "minimal"], "Cool",
+           "#EDF3F4", "#2E3639", "#3F7180",
+           ["#EDF3F4", "#C2D6DA", "#4E8494"],
+           "Ice under overcast light", "June 9, 2025"),
+    _theme(15, "glacier", "Glacier",
+           "Pale blue background with a slate blue cursor.",
+           ["cool", "calm", "minimal"], "Cool",
+           "#E6ECF2", "#2C3238", "#4F6E8C",
+           ["#E6ECF2", "#BCCBDB", "#5E7FA0"],
+           "Glacial ice", "June 9, 2025"),
+    _theme(16, "steel-blue", "Steel Blue",
+           "Dark blue-gray background with a mid-blue cursor.",
+           ["cool", "focused"], "Cool",
+           "#22303C", "#CFD8DE", "#6E9AB8",
+           ["#22303C", "#41586B", "#7FA3BE"],
+           "Cold-rolled steel", "June 9, 2025"),
+    _theme(17, "rain-window", "Rain Window",
+           "Dark gray-green background with a soft teal cursor.",
+           ["calm", "cool"], "Calm",
+           "#26302F", "#CFD6D5", "#7E9C9A",
+           ["#26302F", "#4A5A58", "#8FA9A6"],
+           "Rain on glass", "June 16, 2025"),
+    _theme(18, "winter-harbor", "Winter Harbor",
+           "Dark navy-gray background with a cool gray-blue cursor.",
+           ["cool", "late-night", "minimal"], "Cool",
+           "#1E2733", "#D0D7DE", "#7F94A8",
+           ["#1E2733", "#3C4C5E", "#8FA3B5"],
+           "A harbor in winter", "June 16, 2025"),
+    # --- 19-24: greens ----------------------------------------------------
+    _theme(19, "evergreen", "Evergreen",
+           "Very dark green background with a mid-green cursor.",
+           ["calm", "focused"], "Calm",
+           "#17281F", "#D8E0D2", "#6FA070",
+           ["#17281F", "#2F4A36", "#6FA070"],
+           "Evergreen stands", "June 23, 2025"),
+    _theme(20, "pine", "Pine",
+           "Dark blue-green background with a yellow-green cursor.",
+           ["calm", "cool"], "Calm",
+           "#1F2E24", "#D5DED0", "#8CB273",
+           ["#1F2E24", "#33503C", "#8CB273"],
+           "Pine needles", "June 23, 2025"),
+    _theme(21, "moss", "Moss",
+           "Dark olive background with a yellow-green cursor.",
+           ["calm", "warm"], "Calm",
+           "#232B20", "#DCDCCB", "#94A85F",
+           ["#232B20", "#47563A", "#94A85F"],
+           "Moss on stone", "June 23, 2025"),
+    _theme(22, "cedar", "Cedar",
+           "Dark red-brown background with a warm orange cursor.",
+           ["warm", "vintage"], "Warm",
+           "#2B211B", "#E2D3C2", "#C08A57",
+           ["#2B211B", "#6A4630", "#C08A57"],
+           "Cedar heartwood", "June 30, 2025"),
+    _theme(23, "olive-terminal", "Olive Terminal",
+           "Dark olive background with a muted yellow-green cursor.",
+           ["vintage", "focused"], "Vintage",
+           "#262819", "#DCDAC4", "#A0A64E",
+           ["#262819", "#4C512F", "#A0A64E"],
+           "Olive drab equipment", "June 30, 2025"),
+    _theme(24, "sage-field", "Sage Field",
+           "Pale green-gray background with a muted green cursor.",
+           ["calm", "minimal", "warm"], "Calm",
+           "#EDEFE6", "#33372F", "#5F6F4C",
+           ["#EDEFE6", "#C3CCB6", "#7E8F6A"],
+           "Sage fields", "June 30, 2025"),
+    # --- 25-31: dark neutrals and night --------------------------------
+    _theme(25, "obsidian", "Obsidian",
+           "Near-black background with a cool gray cursor.",
+           ["minimal", "late-night", "focused"], "Minimal",
+           "#121213", "#D2D0CC", "#6E7C86",
+           ["#121213", "#2C2E31", "#68767F"],
+           "Volcanic glass", "July 7, 2025"),
+    _theme(26, "eclipse", "Eclipse",
+           "Near-black violet background with a muted purple cursor.",
+           ["late-night", "minimal"], "Late Night",
+           "#16151A", "#D4D1D8", "#9A7FB0",
+           ["#16151A", "#312E3A", "#9A7FB0"],
+           "A solar eclipse", "July 7, 2025"),
+    _theme(27, "charcoal", "Charcoal",
+           "Dark neutral gray background with a mid-gray cursor.",
+           ["minimal", "focused"], "Minimal",
+           "#202224", "#CCCECF", "#8C9195",
+           ["#202224", "#3A3D40", "#8C9195"],
+           "Charcoal sticks", "July 7, 2025"),
+    _theme(28, "night-shift", "Night Shift",
+           "Very dark blue-gray background with a warm tan cursor.",
+           ["late-night", "focused"], "Late Night",
+           "#14171C", "#C9CFD6", "#C08A5E",
+           ["#14171C", "#2C333C", "#C08A5E"],
+           "Overnight shifts", "July 14, 2025"),
+    _theme(29, "data-center", "Data Center",
+           "Very dark green-gray background with a muted teal cursor.",
+           ["focused", "cool", "late-night"], "Focused",
+           "#101416", "#C6D0CF", "#4E9C8A",
+           ["#101416", "#25302F", "#4E9C8A"],
+           "Server room lighting", "July 14, 2025"),
+    _theme(30, "trading-floor", "Trading Floor",
+           "Near-black green background with a mid-green cursor.",
+           ["focused", "vintage"], "Focused",
+           "#0B0F0C", "#CBCFC7", "#6FA85A",
+           ["#0B0F0C", "#22301F", "#6FA85A"],
+           "Trading terminals", "July 14, 2025"),
+    _theme(31, "terminal-gray", "Terminal Gray",
+           "Dark gray background with a light gray cursor.",
+           ["minimal", "focused"], "Minimal",
+           "#232527", "#C9CBCC", "#9BA0A3",
+           ["#232527", "#3E4143", "#9BA0A3"],
+           "Default terminal gray", "July 21, 2025"),
+    # --- 32-35: warm earth ------------------------------------------------
+    _theme(32, "copper", "Copper",
+           "Dark brown background with a copper-orange cursor.",
+           ["warm", "vintage"], "Warm",
+           "#241C18", "#E4D2C2", "#C4794B",
+           ["#241C18", "#6B3F27", "#C4794B"],
+           "Oxidized copper", "July 21, 2025"),
+    _theme(33, "autumn-ledger", "Autumn Ledger",
+           "Warm cream background with a red-brown cursor.",
+           ["warm", "vintage"], "Warm",
+           "#F1EADD", "#3A332A", "#97613A",
+           ["#F1EADD", "#C8A67E", "#97613A"],
+           "Ledger paper in autumn", "July 21, 2025"),
+    _theme(34, "coffee-house", "Coffee House",
+           "Dark brown background with a mid-brown cursor.",
+           ["warm", "calm"], "Warm",
+           "#241E1A", "#E0D3C4", "#A9764C",
+           ["#241E1A", "#5A4535", "#A9764C"],
+           "Roasted coffee", "July 28, 2025"),
+    _theme(35, "desert-clay", "Desert Clay",
+           "Pale sand background with a terracotta cursor.",
+           ["warm", "minimal"], "Warm",
+           "#F0E7DC", "#3B342C", "#A4633F",
+           ["#F0E7DC", "#D3AF92", "#A4633F"],
+           "Sun-baked clay", "July 28, 2025"),
+    # --- 36-40: papers and light consoles ------------------------------
+    _theme(36, "parchment", "Parchment",
+           "Aged cream background with a dark gold cursor.",
+           ["vintage", "warm", "minimal"], "Vintage",
+           "#F3EEE0", "#3A352B", "#8A6F42",
+           ["#F3EEE0", "#DACDAE", "#8A6F42"],
+           "Aged parchment", "July 28, 2025"),
+    _theme(37, "linen", "Linen",
+           "Off-white background with a warm gray cursor.",
+           ["minimal", "calm", "warm"], "Minimal",
+           "#F2F0EA", "#37352F", "#736C5D",
+           ["#F2F0EA", "#D8D3C6", "#7C7565"],
+           "Unbleached linen", "August 4, 2025"),
+    _theme(38, "typewriter", "Typewriter",
+           "Light gray background with a dark brown-gray cursor.",
+           ["vintage", "minimal"], "Vintage",
+           "#EFEDE7", "#2E2C29", "#6E5F52",
+           ["#EFEDE7", "#BEB8AE", "#6E5F52"],
+           "Typewriter ribbon", "August 4, 2025"),
+    _theme(39, "sepia-screen", "Sepia Screen",
+           "Warm beige background with a brown cursor.",
+           ["vintage", "warm"], "Vintage",
+           "#F0E6D8", "#3B3128", "#8B6134",
+           ["#F0E6D8", "#CBAF8C", "#8B6134"],
+           "Sepia photographs", "August 4, 2025"),
+    _theme(40, "ivory-console", "Ivory Console",
+           "Ivory background with a muted olive-brown cursor.",
+           ["minimal", "warm"], "Minimal",
+           "#F4F1E9", "#35332D", "#6F6950",
+           ["#F4F1E9", "#DCD6C4", "#7A7358"],
+           "Ivory console panels", "August 11, 2025"),
+    # --- 41-43: neutral, ruled, and dusk ----------------------------------
+    _theme(41, "monochrome", "Monochrome",
+           "Light gray background with a mid-gray cursor.",
+           ["minimal", "focused"], "Minimal",
+           "#F2F2F2", "#2B2B2B", "#6E6E6E",
+           ["#F2F2F2", "#C2C2C2", "#6E6E6E"],
+           "Monochrome displays", "August 11, 2025"),
+    _theme(42, "blue-ledger", "Blue Ledger",
+           "Pale blue-gray background with a mid-blue cursor.",
+           ["cool", "focused", "minimal"], "Cool",
+           "#EDF0F4", "#2F343B", "#4C6B94",
+           ["#EDF0F4", "#BFCBDC", "#4C6B94"],
+           "Blue-ruled ledger paper", "August 11, 2025"),
+    _theme(43, "quiet-violet", "Quiet Violet",
+           "Dark violet-gray background with a muted purple cursor.",
+           ["late-night", "calm"], "Late Night",
+           "#1C1A24", "#D6D2DE", "#8E7CB8",
+           ["#1C1A24", "#3A3448", "#8E7CB8"],
+           "Dusk light", "August 11, 2025"),
 ]
 
-# Sidebar mood filters. Order is presentational; counts are derived from the
-# assignments above so they cannot drift out of sync with THEMES.
-_MOOD_ICONS = [
-    ("Focused", "target"),
-    ("Calm", "leaf"),
-    ("Warm", "flame"),
-    ("Cool", "drop"),
-    ("Late Night", "moon"),
-    ("Minimal", "minimal"),
-    ("Vintage", "clock"),
-]
+
+def active_themes():
+    """Active themes in display order. The only list the UI should render."""
+    return sorted((t for t in THEMES if t["active"]),
+                  key=lambda t: t["display_order"])
 
 
-def _build_moods():
-    moods = [
-        {"key": "all", "label": "All Themes", "icon": "grid", "count": len(THEMES)}
-    ]
-    for label, icon in _MOOD_ICONS:
-        moods.append(
-            {
-                "key": label,
-                "label": label,
-                "icon": icon,
-                "count": sum(1 for t in THEMES if label in t["moods"]),
-            }
-        )
+def initial_theme():
+    """The theme selected on first paint, taken from the data itself."""
+    themes = active_themes()
+    return themes[0] if themes else None
+
+
+def build_moods():
+    """Sidebar filters. Counts are derived from active data, never hardcoded."""
+    active = active_themes()
+    moods = [{"key": "all", "label": "All Themes", "icon": "grid",
+              "count": len(active)}]
+    for key, label, icon in MOOD_DEFS:
+        moods.append({
+            "key": key,
+            "label": label,
+            "icon": icon,
+            "count": sum(1 for t in active if key in t["moods"]),
+        })
     return moods
-
-
-MOODS = _build_moods()

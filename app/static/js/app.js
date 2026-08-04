@@ -10,8 +10,8 @@
   if (!dataEl) { return; }
 
   var THEMES = JSON.parse(dataEl.textContent);
-  var BY_SLUG = {};
-  THEMES.forEach(function (t) { BY_SLUG[t.slug] = t; });
+  var BY_ID = {};
+  THEMES.forEach(function (t) { BY_ID[t.id] = t; });
 
   var FAV_KEY = 'tp:favorites';
   var APPEARANCE_KEY = 'tp:appearance';
@@ -23,6 +23,9 @@
     name:       document.getElementById('detail-name'),
     desc:       document.getElementById('detail-desc'),
     category:   document.getElementById('detail-category'),
+    created:    document.getElementById('detail-created'),
+    inspired:   document.getElementById('detail-inspired'),
+    version:    document.getElementById('detail-version'),
     detailFav:  document.getElementById('detail-fav'),
     favLabel:   document.getElementById('detail-fav-label'),
     favCount:   document.getElementById('favorite-count'),
@@ -34,7 +37,7 @@
     appHeader:  document.getElementById('appearance-header')
   };
 
-  var selected = THEMES[0].slug;
+  var selected = THEMES.length ? THEMES[0].id : null;
   var mood = 'all';
   var favorites = loadFavorites();
 
@@ -44,7 +47,7 @@
     try {
       var raw = window.localStorage.getItem(FAV_KEY);
       var list = raw ? JSON.parse(raw) : [];
-      return Array.isArray(list) ? list.filter(function (s) { return !!BY_SLUG[s]; }) : [];
+      return Array.isArray(list) ? list.filter(function (s) { return !!BY_ID[s]; }) : [];
     } catch (e) {
       return [];
     }
@@ -58,14 +61,14 @@
     }
   }
 
-  function isFavorite(slug) { return favorites.indexOf(slug) !== -1; }
+  function isFavorite(id) { return favorites.indexOf(id) !== -1; }
 
-  function toggleFavorite(slug) {
-    var i = favorites.indexOf(slug);
-    if (i === -1) { favorites.push(slug); } else { favorites.splice(i, 1); }
+  function toggleFavorite(id) {
+    var i = favorites.indexOf(id);
+    if (i === -1) { favorites.push(id); } else { favorites.splice(i, 1); }
     saveFavorites();
     renderFavorites();
-    announce(BY_SLUG[slug].name + (isFavorite(slug) ? ' added to favorites' : ' removed from favorites'));
+    announce(BY_ID[id].name + (isFavorite(id) ? ' added to favorites' : ' removed from favorites'));
   }
 
   function renderFavorites() {
@@ -75,9 +78,10 @@
     }
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-fav]'), function (btn) {
-      var slug = btn.getAttribute('data-fav');
-      var on = isFavorite(slug);
-      var theme = BY_SLUG[slug];
+      var id = btn.getAttribute('data-fav');
+      var on = isFavorite(id);
+      var theme = BY_ID[id];
+      if (!theme) { return; }
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       btn.setAttribute('aria-label', (on ? 'Remove ' : 'Add ') + theme.name + (on ? ' from favorites' : ' to favorites'));
     });
@@ -93,14 +97,14 @@
 
   /* ------------------------------------------------ selection ---- */
 
-  function selectTheme(slug) {
-    var theme = BY_SLUG[slug];
+  function selectTheme(id) {
+    var theme = BY_ID[id];
     if (!theme) { return; }
-    selected = slug;
+    selected = id;
 
     // Card state
     Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
-      var on = card.getAttribute('data-slug') === slug;
+      var on = card.getAttribute('data-id') === id;
       card.classList.toggle('is-selected', on);
       var btn = card.querySelector('[data-select]');
       if (btn) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
@@ -108,8 +112,11 @@
 
     // Details panel text
     if (el.name) { el.name.textContent = theme.name; }
-    if (el.desc) { el.desc.textContent = theme.detail; }
+    if (el.desc) { el.desc.textContent = theme.description; }
     if (el.category) { el.category.textContent = theme.category; }
+    if (el.created) { el.created.textContent = theme.created; }
+    if (el.inspired) { el.inspired.textContent = theme.inspired_by; }
+    if (el.version) { el.version.textContent = theme.version; }
 
     renderColors(theme);
 
@@ -126,35 +133,30 @@
   var CHANNELS = ['r', 'g', 'b'];
   var GROUPS = ['background', 'foreground', 'cursor'];
 
-  // Hex is the stored representation; PuTTY wants decimal 0-255 per channel.
-  function hexToRgb(hex) {
-    var h = String(hex).replace('#', '');
-    if (h.length === 3) { h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; }
-    var n = parseInt(h, 16);
-    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  // Each functional colour arrives from themes.py as {hex, rgb:[r,g,b]}.
+  function rgbFor(key) {
+    var rgb = BY_ID[selected][key].rgb;
+    return { r: rgb[0], g: rgb[1], b: rgb[2] };
   }
-
-  function rgbFor(key) { return hexToRgb(BY_SLUG[selected].colors[key]); }
 
   function renderColors(theme) {
     GROUPS.forEach(function (key) {
-      var hex = theme.colors[key];
+      var colour = theme[key];
       var chip = document.querySelector('[data-chip="' + key + '"]');
-      if (chip) { chip.style.background = hex; }
+      if (chip) { chip.style.background = colour.hex; }
 
-      var rgb = hexToRgb(hex);
-      CHANNELS.forEach(function (ch) {
+      CHANNELS.forEach(function (ch, i) {
         var node = document.querySelector('[data-ch="' + key + '-' + ch + '"]');
-        if (node) { node.textContent = String(rgb[ch]); }
+        if (node) { node.textContent = String(colour.rgb[i]); }
       });
     });
   }
 
   function applyTerminal(node, theme, bgVar, fgVar, accentVar) {
     if (!node) { return; }
-    node.style.setProperty(bgVar, theme.colors.background);
-    node.style.setProperty(fgVar, theme.colors.foreground);
-    node.style.setProperty(accentVar, theme.colors.cursor);
+    node.style.setProperty(bgVar, theme.background.hex);
+    node.style.setProperty(fgVar, theme.foreground.hex);
+    node.style.setProperty(accentVar, theme.cursor.hex);
   }
 
   /* ------------------------------------------------ moods ------- */
@@ -168,11 +170,11 @@
     var visible = [];
 
     Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
-      var theme = BY_SLUG[card.getAttribute('data-slug')];
+      var theme = BY_ID[card.getAttribute('data-id')];
       var show = matchesMood(theme, key);
       // `hidden` removes the card from the tab order as well as the layout.
       card.hidden = !show;
-      if (show) { visible.push(theme.slug); }
+      if (show) { visible.push(theme.id); }
     });
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-mood]'), function (btn) {
@@ -267,7 +269,7 @@
       if (fav) { toggleFavorite(fav.getAttribute('data-fav')); return; }
 
       var card = e.target.closest('.theme-card');
-      if (card) { selectTheme(card.getAttribute('data-slug')); }
+      if (card) { selectTheme(card.getAttribute('data-id')); }
     });
   }
 
@@ -306,8 +308,8 @@
   /* ------------------------------------------------ init --------- */
   // The hero terminal keeps its default charcoal palette until a theme is
   // chosen; the mini preview reflects the selected theme from the start.
-  applyTerminal(el.mini, BY_SLUG[selected], '--mini-bg', '--mini-fg', '--mini-accent');
-  renderColors(BY_SLUG[selected]);
+  applyTerminal(el.mini, BY_ID[selected], '--mini-bg', '--mini-fg', '--mini-accent');
+  renderColors(BY_ID[selected]);
   renderFavorites();
   renderAppearance();
 })();

@@ -47,6 +47,27 @@ TerminalPalette/
       img/              # empty (.gitkeep)
 ```
 
+## Theme data
+
+`app/themes.py` is the single source of truth for all 43 themes. It is
+rendered into the template and serialised once into a JSON script block for
+the client — JavaScript holds no second copy.
+
+Each theme carries a **two-tier colour model**, which is intentional and must
+not be collapsed: `palette` is the decorative three-swatch strip on the card;
+`background` / `foreground` / `cursor` are the functional PuTTY values shown
+in the details panel. They may differ. Functional values are held to WCAG
+minimums — foreground 4.5:1 and cursor 3:1 against background.
+
+**Seasonal rotation.** Every theme carries `active`, `season`
+(`permanent` / `spring` / `summer` / `autumn` / `winter`) and `display_order`.
+Only `active` themes render, ordered by `display_order`. There is no
+scheduling logic, no date reading, and no visible season filter — rotating a
+set later means editing those data values only.
+
+Run `python validate_themes.py --table` after any theme edit. It checks
+schema, uniqueness, RGB/hex agreement, moods, seasons, and contrast.
+
 ## Configuration
 
 `config.py` reads `SECRET_KEY` and `FLASK_ENV` from the environment.

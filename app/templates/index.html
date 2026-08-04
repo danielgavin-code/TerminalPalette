@@ -184,21 +184,22 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
 
       <ul class="theme-grid" id="theme-grid">
         {% for theme in themes %}
-        <li class="theme-card{% if loop.first %} is-selected{% endif %}" data-slug="{{ theme.slug }}">
-          <button type="button" class="card-fav" data-fav="{{ theme.slug }}"
+        <li class="theme-card{% if theme.id == initial.id %} is-selected{% endif %}" data-id="{{ theme.id }}">
+          <button type="button" class="card-fav" data-fav="{{ theme.id }}"
                   aria-pressed="false" aria-label="Add {{ theme.name }} to favorites">
             <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>
           </button>
           <h3 class="card-name">{{ theme.name }}</h3>
           <p class="card-desc">{{ theme.description }}</p>
+          {# Decorative palette strip — distinct from the functional values. #}
           <span class="swatches" aria-hidden="true">
-            <span style="background: {{ theme.colors.background }}"></span>
-            <span style="background: {{ theme.colors.foreground }}"></span>
-            <span style="background: {{ theme.colors.cursor }}"></span>
+            {% for swatch in theme.palette %}
+            <span style="background: {{ swatch }}"></span>
+            {% endfor %}
           </span>
           <span class="card-foot">
-            <button type="button" class="card-select" data-select="{{ theme.slug }}"
-                    {% if loop.first %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
+            <button type="button" class="card-select" data-select="{{ theme.id }}"
+                    {% if theme.id == initial.id %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
               View details
               <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"/></svg>
               <span class="sr-only"> for {{ theme.name }}</span>
@@ -216,7 +217,7 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
   <div class="details" id="details">
 
     <div class="details-head">
-      <h2 class="details-title" id="detail-name">{{ themes[0].name }}</h2>
+      <h2 class="details-title" id="detail-name">{{ initial.name }}</h2>
       <button type="button" class="icon-btn" data-placeholder aria-label="Close details panel">
         <svg class="icon icon-sm" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
@@ -246,7 +247,7 @@ drwxr-xr-x   4 user   staff
       <section class="color-group" aria-labelledby="grp-{{ key }}">
         <div class="group-head">
           <h3 class="group-label" id="grp-{{ key }}">{{ label }}</h3>
-          <span class="chip" data-chip="{{ key }}" style="background: {{ themes[0].colors[key] }}" aria-hidden="true"></span>
+          <span class="chip" data-chip="{{ key }}" style="background: {{ initial[key].hex }}" aria-hidden="true"></span>
         </div>
         <ul class="channels">
           {% for ch, ch_label in [('r', 'Red'), ('g', 'Green'), ('b', 'Blue')] %}
@@ -271,7 +272,7 @@ drwxr-xr-x   4 user   staff
       {% endfor %}
     </div>
 
-    <p class="details-desc" id="detail-desc">{{ themes[0].detail }}</p>
+    <p class="details-desc" id="detail-desc">{{ initial.description }}</p>
 
     <section class="download" aria-labelledby="dl-title">
       <p class="eyebrow" id="dl-title">Download for PuTTY</p>
@@ -289,10 +290,10 @@ drwxr-xr-x   4 user   staff
     <section class="meta" aria-labelledby="meta-title">
       <p class="eyebrow" id="meta-title">Details</p>
       <dl class="meta-list">
-        <div class="meta-row"><dt>Created</dt><dd>May 18, 2025</dd></div>
-        <div class="meta-row"><dt>Inspired by</dt><dd>Cape Cod mornings</dd></div>
-        <div class="meta-row"><dt>Version</dt><dd>1.0</dd></div>
-        <div class="meta-row"><dt>Category</dt><dd><span class="pill" id="detail-category">{{ themes[0].category }}</span></dd></div>
+        <div class="meta-row"><dt>Created</dt><dd id="detail-created">{{ initial.created }}</dd></div>
+        <div class="meta-row"><dt>Inspired by</dt><dd id="detail-inspired">{{ initial.inspired_by }}</dd></div>
+        <div class="meta-row"><dt>Version</dt><dd id="detail-version">{{ initial.version }}</dd></div>
+        <div class="meta-row"><dt>Category</dt><dd><span class="pill" id="detail-category">{{ initial.category }}</span></dd></div>
       </dl>
     </section>
 
