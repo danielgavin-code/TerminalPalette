@@ -39,6 +39,8 @@ REMOVED_IDS = {
     "winter-harbor",  # -> coastal-slate
     "rain-window",    # -> coastal-slate
     "steel-blue",     # -> midnight-blue
+    # third pass
+    "desert-clay",    # -> autumn-ledger
 }
 
 # Perceptual bands for the similarity audit, on the weighted dE00 score.
@@ -55,6 +57,8 @@ def band_for(score):
         if score < limit:
             return label
     return BANDS[-1][1]
+
+
 ENV_FLOOR = 3
 
 FG_MIN = 4.5
@@ -75,7 +79,7 @@ EXPECTED_ENVIRONMENTS = {
     "uat": {"blue-ledger", "ocean-glass", "harbor-fog", "arctic-glass",
             "midnight-blue"},
     "development": {"evergreen", "forest", "sage-field", "salt-marsh"},
-    "dr": {"amber-terminal", "autumn-ledger", "desert-clay", "cedar"},
+    "dr": {"amber-terminal", "autumn-ledger", "cedar"},
     "maintenance": {"data-center", "warm-paper", "parchment"},
     "neutral": {"graphite", "midnight-blue", "monochrome", "ivory-console",
                 "bloomberg-classic"},
