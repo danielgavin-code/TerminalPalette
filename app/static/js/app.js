@@ -37,12 +37,22 @@
     appHeader:  document.getElementById('appearance-header'),
     search:     document.getElementById('theme-search'),
     clear:      document.getElementById('search-clear'),
-    count:      document.getElementById('result-count')
+    count:      document.getElementById('result-count'),
+    pagination: document.getElementById('pagination'),
+    pageStatus: document.getElementById('page-status'),
+    pagePrev:   document.getElementById('page-prev'),
+    pageNext:   document.getElementById('page-next')
   };
+
+  var CARDS = el.grid
+    ? Array.prototype.slice.call(el.grid.querySelectorAll('.theme-card'))
+    : [];
 
   var selected = THEMES.length ? THEMES[0].id : null;
   var mood = 'all';
   var query = '';
+  var matching = [];
+  var page = 1;
   var favorites = loadFavorites();
 
   /* ------------------------------------------------ favorites ---- */
@@ -184,15 +194,55 @@
     return HAYSTACK[theme.id].indexOf(query) !== -1;
   }
 
-  function applyFilters() {
-    var visible = [];
+  /* ------------------------------------------------ pagination -- */
 
-    Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
-      var theme = BY_ID[card.getAttribute('data-id')];
-      var show = matchesFilters(theme);
+  // Page size = columns x rows. Boundaries mirror the grid breakpoints in
+  // styles.css. Page counts are always derived from these, never hardcoded.
+  var MQ_WIDE = window.matchMedia('(min-width: 1241px)');   // 4 columns
+  var MQ_MED = window.matchMedia('(min-width: 1041px)');    // 3 columns
+  var MQ_TABLET = window.matchMedia('(min-width: 561px)');  // 2 columns
+
+  var PAGE_WIDE = 16;    // 4 x 4
+  var PAGE_MED = 9;      // 3 x 3
+  var PAGE_TABLET = 6;   // 2 x 3
+  var PAGE_MOBILE = 3;   // 1 x 3
+
+  function pageSize() {
+    if (MQ_WIDE.matches) { return PAGE_WIDE; }
+    if (MQ_MED.matches) { return PAGE_MED; }
+    if (MQ_TABLET.matches) { return PAGE_TABLET; }
+    return PAGE_MOBILE;
+  }
+
+  function totalPages() {
+    return Math.max(1, Math.ceil(matching.length / pageSize()));
+  }
+
+  function goToPage(n) {
+    page = n;
+    render();
+  }
+
+  /* ------------------------------------------------ rendering --- */
+
+  // Filters resolve first, producing the matching set; pagination then
+  // applies to that set.
+  function computeMatches() {
+    matching = CARDS
+      .filter(function (card) { return matchesFilters(BY_ID[card.getAttribute('data-id')]); })
+      .map(function (card) { return card.getAttribute('data-id'); });
+  }
+
+  function render() {
+    var pages = totalPages();
+    page = Math.min(Math.max(page, 1), pages);
+
+    var start = (page - 1) * pageSize();
+    var onPage = matching.slice(start, start + pageSize());
+
+    CARDS.forEach(function (card) {
       // `hidden` removes the card from the tab order as well as the layout.
-      card.hidden = !show;
-      if (show) { visible.push(theme.id); }
+      card.hidden = onPage.indexOf(card.getAttribute('data-id')) === -1;
     });
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-mood]'), function (btn) {
@@ -201,16 +251,30 @@
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
-    if (el.empty) { el.empty.hidden = visible.length > 0; }
+    if (el.empty) { el.empty.hidden = matching.length > 0; }
     if (el.clear) { el.clear.hidden = !query; }
+    // The count always reports total matches, never the current page.
     if (el.count) {
-      el.count.textContent = visible.length + (visible.length === 1 ? ' theme' : ' themes');
+      el.count.textContent = matching.length + (matching.length === 1 ? ' theme' : ' themes');
     }
 
-    // Keep the details panel on something the user can actually see.
-    if (visible.length && visible.indexOf(selected) === -1) {
-      selectTheme(visible[0]);
+    if (el.pagination) {
+      el.pagination.hidden = pages <= 1;
+      if (el.pageStatus) { el.pageStatus.textContent = 'Page ' + page + ' of ' + pages; }
+      if (el.pagePrev) { el.pagePrev.disabled = page <= 1; }
+      if (el.pageNext) { el.pageNext.disabled = page >= pages; }
     }
+
+    // Keep the details panel on a card the user can actually see.
+    if (onPage.length && onPage.indexOf(selected) === -1) {
+      selectTheme(onPage[0]);
+    }
+  }
+
+  function applyFilters() {
+    page = 1;
+    computeMatches();
+    render();
   }
 
   function setMood(key) {
@@ -325,6 +389,9 @@
 
     if (el.clear && e.target.closest('#search-clear')) { clearSearch(); return; }
 
+    if (e.target.closest('#page-prev')) { goToPage(page - 1); return; }
+    if (e.target.closest('#page-next')) { goToPage(page + 1); return; }
+
     var moodBtn = e.target.closest('[data-mood]');
     if (moodBtn) { setMood(moodBtn.getAttribute('data-mood')); return; }
 
@@ -348,8 +415,16 @@
     });
   }
 
+  // A breakpoint change alters the page size; recount pages and clamp.
+  [MQ_WIDE, MQ_MED, MQ_TABLET].forEach(function (mq) {
+    var onChange = function () { render(); };
+    if (mq.addEventListener) { mq.addEventListener('change', onChange); }
+    else if (mq.addListener) { mq.addListener(onChange); }
+  });
+
   applyTerminal(el.mini, BY_ID[selected], '--mini-bg', '--mini-fg', '--mini-accent');
   renderColors(BY_ID[selected]);
   renderFavorites();
   renderAppearance();
+  applyFilters();
 })();

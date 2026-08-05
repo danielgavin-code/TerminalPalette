@@ -210,6 +210,18 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
         {% endfor %}
       </ul>
       <p class="grid-empty" id="grid-empty" hidden>No themes in this mood.</p>
+
+      <nav class="pagination" id="pagination" aria-label="Theme pages" hidden>
+        <button type="button" class="page-btn page-prev" id="page-prev" aria-label="Previous page">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="#i-chevron"/></svg>
+          <span>Previous</span>
+        </button>
+        <p class="page-status" id="page-status" role="status" aria-live="polite">Page 1 of 1</p>
+        <button type="button" class="page-btn page-next" id="page-next" aria-label="Next page">
+          <span>Next</span>
+          <svg class="icon icon-xs" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+      </nav>
     </section>
 
   </div>
