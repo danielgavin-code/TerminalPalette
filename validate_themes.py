@@ -75,12 +75,12 @@ REQUIRED = (
 # Stated independently of app.themes so this verifies the assignments rather
 # than simply echoing them back.
 EXPECTED_ENVIRONMENTS = {
-    "production": {"closing-bell", "copper", "charcoal", "obsidian"},
+    "production": {"closing-bell", "copper", "charcoal", "obsidian", "redwood"},
     "uat": {"blue-ledger", "ocean-glass", "harbor-fog", "arctic-glass",
             "midnight-blue"},
-    "development": {"evergreen", "forest", "sage-field", "salt-marsh"},
-    "dr": {"amber-terminal", "autumn-ledger", "cedar"},
-    "maintenance": {"data-center", "warm-paper", "parchment"},
+    "development": {"evergreen", "forest", "sage-field", "salt-marsh", "seafoam"},
+    "dr": {"amber-terminal", "autumn-ledger", "cedar", "golden-hour"},
+    "maintenance": {"data-center", "warm-paper", "parchment", "whiskey"},
     "neutral": {"graphite", "midnight-blue", "monochrome", "ivory-console",
                 "bloomberg-classic"},
 }

@@ -261,6 +261,49 @@ THEMES = [
            "#1A1614", "#E2DBD3", "#B8503F",
            ["#1A1614", "#3A2A26", "#B8503F"],
            "Market close operations", "August 18, 2025"),
+    # --- 31-37: expansion set ---------------------------------------------
+    _theme(31, "spring-orchard", "Spring Orchard",
+           "Pale blossom background with a leaf-green cursor.",
+           ["calm", "minimal"], "Calm",
+           "#F4ECEE", "#33302F", "#5E7A4B",
+           ["#F4ECEE", "#D9BFC6", "#5E7A4B"],
+           "Orchards in blossom", "August 25, 2025"),
+    _theme(32, "golden-hour", "Golden Hour",
+           "Dark plum background with a gold cursor.",
+           ["warm", "late-night"], "Warm",
+           "#2A1F26", "#E8DCC8", "#D9A441",
+           ["#2A1F26", "#5C4450", "#D9A441"],
+           "Light before sunset", "August 25, 2025"),
+    _theme(33, "morning-mist", "Morning Mist",
+           "Pale lavender-gray background with a muted violet cursor.",
+           ["calm", "cool", "minimal"], "Calm",
+           "#EDEBF2", "#34323A", "#6F6A8C",
+           ["#EDEBF2", "#C6C2D4", "#6F6A8C"],
+           "Mist at first light", "August 25, 2025"),
+    _theme(34, "redwood", "Redwood",
+           "Dark red-brown background with a red cursor.",
+           ["warm", "focused"], "Warm",
+           "#2E1A1A", "#E6D2CB", "#C4553F",
+           ["#2E1A1A", "#6B3230", "#C4553F"],
+           "Redwood heartwood", "September 1, 2025"),
+    _theme(35, "whiskey", "Whiskey",
+           "Caramel background with a dark amber cursor.",
+           ["warm", "vintage"], "Vintage",
+           "#EFE0C8", "#3A2E1F", "#8A5A22",
+           ["#EFE0C8", "#C9A570", "#8A5A22"],
+           "Whiskey in a glass", "September 1, 2025"),
+    _theme(36, "seafoam", "Seafoam",
+           "Dark teal-green background with a pale green cursor.",
+           ["cool", "calm"], "Cool",
+           "#0F2E2A", "#D2E4DC", "#6FBFA0",
+           ["#0F2E2A", "#2E6255", "#6FBFA0"],
+           "Seafoam on a shoreline", "September 1, 2025"),
+    _theme(37, "apricot", "Apricot",
+           "Peach background with a burnt orange cursor.",
+           ["warm", "minimal"], "Warm",
+           "#F7E6D6", "#3D3128", "#B85C2E",
+           ["#F7E6D6", "#E5B48C", "#B85C2E"],
+           "Ripe apricot skin", "September 1, 2025"),
 ]
 
 
@@ -309,6 +352,11 @@ ENVIRONMENTS = {
     "monochrome": ["neutral"],
     "ivory-console": ["neutral"],
     "bloomberg-classic": ["neutral"],
+    # Expansion set: assigned only where the palette genuinely fits.
+    "redwood": ["production"],       # dark ground, restrained red accent
+    "golden-hour": ["dr"],           # amber/gold caution tone
+    "whiskey": ["maintenance"],      # warm paper tone for planned work
+    "seafoam": ["development"],      # green accent
 }
 
 for _theme_entry in THEMES:
