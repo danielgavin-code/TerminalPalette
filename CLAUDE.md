@@ -49,7 +49,9 @@ TerminalPalette/
 
 ## Theme data
 
-`app/themes.py` is the single source of truth for all 43 themes. It is
+`app/themes.py` is the single source of truth for the theme collection. Every
+count in the UI — All Themes, the result count, mood counts, and the page
+count — is derived from the active data; no total is hardcoded anywhere. It is
 rendered into the template and serialised once into a JSON script block for
 the client — JavaScript holds no second copy.
 
@@ -79,7 +81,12 @@ either.
 
 Run `python validate_themes.py --table` after any theme edit. It checks
 schema, uniqueness, RGB/hex agreement, moods, seasons, environments, and
-contrast.
+contrast, and enforces a floor of three themes per environment.
+
+`python validate_themes.py --similar` prints the perceptual similarity audit
+(sRGB → CIELAB → CIEDE2000, weighted background 50% / foreground 30% /
+cursor 20%) with the closest pairs. Development only — it is never rendered on
+the site. Use it before adding a theme to check it is not a near-duplicate.
 
 ## Configuration
 
