@@ -645,12 +645,6 @@ a { color: inherit; text-decoration: none; }
 .theme-card.is-selected .card-select { color: var(--accent); }
 
 /* ------------------------------------------- 11. Details --------- */
-.details-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
 .details-title {
   font-size: 12px;
   font-weight: 600;
@@ -815,17 +809,40 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+/* Icon sits inline to the left of the heading; the body copy spans both
+   columns so it starts at the icon's left edge, not indented to the heading. */
 .feature {
   padding: 28px 26px;
   border-left: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 9px;
+  row-gap: 5px;
+  align-content: start;
 }
 .feature:first-child { border-left: 0; padding-left: 0; }
-.feature-icon { color: var(--accent); width: 19px; height: 19px; }
-.feature h2 { font-size: 13px; font-weight: 600; }
-.feature p { font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
+.feature-icon {
+  color: var(--accent);
+  width: 19px;
+  height: 19px;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+.feature h2 {
+  font-size: 13px;
+  font-weight: 600;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+.feature p {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.55;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
 
 /* ------------------------------------------- 13. Responsive ------ */
 @media (max-width: 1240px) {

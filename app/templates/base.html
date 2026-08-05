@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Terminal Palette{% endblock %}</title>
   <meta name="description" content="{% block description %}Terminal color schemes built for readable, focused sessions.{% endblock %}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
   {# Set the appearance before the stylesheet loads so a returning dark-mode
      user does not see a light flash. The only inline script on the page. #}
   <script>

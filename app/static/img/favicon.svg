@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-label="Terminal Palette">
+  <!-- Warm off-white tile matching the header panel, so the mark reads as a
+       single object at 16x16 on any browser-tab background. -->
+  <rect width="16" height="16" rx="3" fill="#F1EEE8"/>
+  <!-- Same 2x2 arrangement and colours as the header logo: blue-gray, warm
+       beige, muted green, rust. Chunky squares, 1px gap, no fine detail. -->
+  <rect x="1.5" y="1.5" width="6" height="6" rx="1.4" fill="#667C87"/>
+  <rect x="8.5" y="1.5" width="6" height="6" rx="1.4" fill="#D9CDB6"/>
+  <rect x="1.5" y="8.5" width="6" height="6" rx="1.4" fill="#8FB673"/>
+  <rect x="8.5" y="8.5" width="6" height="6" rx="1.4" fill="#A4492B"/>
+</svg>
