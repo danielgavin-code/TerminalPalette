@@ -34,11 +34,15 @@
     empty:      document.getElementById('grid-empty'),
     appLabel:   document.getElementById('appearance-label'),
     appHint:    document.getElementById('appearance-hint'),
-    appHeader:  document.getElementById('appearance-header')
+    appHeader:  document.getElementById('appearance-header'),
+    search:     document.getElementById('theme-search'),
+    clear:      document.getElementById('search-clear'),
+    count:      document.getElementById('result-count')
   };
 
   var selected = THEMES.length ? THEMES[0].id : null;
   var mood = 'all';
+  var query = '';
   var favorites = loadFavorites();
 
   /* ------------------------------------------------ favorites ---- */
@@ -161,38 +165,69 @@
 
   /* ------------------------------------------------ moods ------- */
 
-  function matchesMood(theme, key) {
-    return key === 'all' || theme.moods.indexOf(key) !== -1;
+  // Searchable text per theme, built once. `environments` is included so the
+  // hidden metadata is findable, but it is never rendered anywhere.
+  var HAYSTACK = {};
+  THEMES.forEach(function (t) {
+    HAYSTACK[t.id] = [t.name, t.description, t.category]
+      .concat(t.moods, t.environments || [])
+      .join(' ')
+      .toLowerCase()
+      // "late-night" should also answer to "late night".
+      .replace(/-/g, ' ') + ' ' + t.moods.join(' ').toLowerCase();
+  });
+
+  // Mood and search resolve through this one predicate. A theme must pass both.
+  function matchesFilters(theme) {
+    if (mood !== 'all' && theme.moods.indexOf(mood) === -1) { return false; }
+    if (!query) { return true; }
+    return HAYSTACK[theme.id].indexOf(query) !== -1;
   }
 
-  function applyMood(key) {
-    mood = key;
+  function applyFilters() {
     var visible = [];
 
     Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
       var theme = BY_ID[card.getAttribute('data-id')];
-      var show = matchesMood(theme, key);
+      var show = matchesFilters(theme);
       // `hidden` removes the card from the tab order as well as the layout.
       card.hidden = !show;
       if (show) { visible.push(theme.id); }
     });
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-mood]'), function (btn) {
-      var on = btn.getAttribute('data-mood') === key;
+      var on = btn.getAttribute('data-mood') === mood;
       btn.classList.toggle('is-selected', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
     if (el.empty) { el.empty.hidden = visible.length > 0; }
+    if (el.clear) { el.clear.hidden = !query; }
+    if (el.count) {
+      el.count.textContent = visible.length + (visible.length === 1 ? ' theme' : ' themes');
+    }
 
     // Keep the details panel on something the user can actually see.
     if (visible.length && visible.indexOf(selected) === -1) {
       selectTheme(visible[0]);
     }
+  }
 
-    announce(visible.length
-      ? visible.length + (visible.length === 1 ? ' theme' : ' themes') + ' shown'
-      : 'No themes in this mood');
+  function setMood(key) {
+    mood = key;
+    applyFilters();
+  }
+
+  function setQuery(value) {
+    query = value.trim().toLowerCase();
+    applyFilters();
+  }
+
+  function clearSearch() {
+    if (!el.search) { return; }
+    el.search.value = '';
+    setQuery('');
+    el.search.focus();
   }
 
   /* ------------------------------------------------ appearance -- */
@@ -282,21 +317,16 @@
       return;
     }
 
-    // Whole group -> "242, 240, 224"
-    var trio = e.target.closest('[data-copy-rgb]');
-    if (trio) {
-      var rgb = rgbFor(trio.getAttribute('data-copy-rgb'));
-      copyValue(CHANNELS.map(function (ch) { return rgb[ch]; }).join(', '), trio);
-      return;
-    }
 
     if (el.detailFav && e.target.closest('#detail-fav')) {
       toggleFavorite(selected);
       return;
     }
 
+    if (el.clear && e.target.closest('#search-clear')) { clearSearch(); return; }
+
     var moodBtn = e.target.closest('[data-mood]');
-    if (moodBtn) { applyMood(moodBtn.getAttribute('data-mood')); return; }
+    if (moodBtn) { setMood(moodBtn.getAttribute('data-mood')); return; }
 
     if (e.target.closest('.appearance-btn')) { toggleAppearance(); return; }
 
@@ -308,6 +338,16 @@
   /* ------------------------------------------------ init --------- */
   // The hero terminal keeps its default charcoal palette until a theme is
   // chosen; the mini preview reflects the selected theme from the start.
+  if (el.search) {
+    el.search.addEventListener('input', function (e) { setQuery(e.target.value); });
+    el.search.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && el.search.value) {
+        e.preventDefault();
+        clearSearch();
+      }
+    });
+  }
+
   applyTerminal(el.mini, BY_ID[selected], '--mini-bg', '--mini-fg', '--mini-accent');
   renderColors(BY_ID[selected]);
   renderFavorites();

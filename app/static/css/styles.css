@@ -6,19 +6,22 @@
 
 /* -------------------------------------------------- 1. Tokens ---- */
 :root {
-  --bg:            #F7F4EF;
-  --panel:         #FAF8F4;
-  --text:          #171714;
-  --text-2:        #5F5B55;
-  --border:        #DED9D1;
-  --border-subtle: #E9E5DE;
-  --accent:        #B95735;
-  --accent-hover:  #98452C;
-  --active:        #EEE9E1;
+  /* Light mode: restrained warm-gray surfaces, no near-white page areas. */
+  --bg:            #E9E6E0;
+  --panel:         #F1EEE8;
+  --text:          #242320;
+  --text-2:        #625E57;
+  --border:        #CFC9BF;
+  --border-subtle: #DDD7CE;
+  /* Rust, deepened just enough to hold 4.5:1 as small text on the softer
+     surfaces (5.09:1 on panel, 4.73:1 on page). */
+  --accent:        #A4492B;
+  --accent-hover:  #8E3D22;
+  --active:        #E0DCD3;
 
-  --panel-hover:   #FFFDF9;
-  --border-hover:  #CFC9BF;
-  --icon-muted:    #9C968D;
+  --panel-hover:   #F5F2EC;
+  --border-hover:  #BDB6AA;
+  --icon-muted:    #847E73;
 
   /* Solid rust for filled buttons. Held at the darker value in both modes so
      the white button label keeps its contrast ratio. */
@@ -285,7 +288,7 @@ a { color: inherit; text-decoration: none; }
   padding: 30px var(--sidebar-pad-r) 22px var(--gutter);
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 22px;
 }
 
 .center {
@@ -301,35 +304,16 @@ a { color: inherit; text-decoration: none; }
   padding: 28px var(--gutter) 26px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 /* -------------------------------------------------- 7. Sidebar --- */
-.sidebar-intro { display: flex; flex-direction: column; gap: 12px; }
+.sidebar-intro { display: flex; flex-direction: column; gap: 10px; }
 /* 26px keeps "Clearer sessions." (the wider of the two lines, 7.16em in
    Georgia) at ~186px inside the 198px content box, so the heading sets as
    exactly two lines at every desktop width. */
 .sidebar-intro .display { font-size: 26px; line-height: 1.14; margin-top: 2px; }
 
-.btn-outline {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  padding: 9px 13px;
-  border-radius: 3px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  color: var(--text);
-  transition: border-color .15s ease, background-color .15s ease;
-}
-.btn-outline:hover { border-color: var(--text-2); background: var(--active); }
-.btn-outline .trail { margin-left: 4px; color: var(--text-2); }
-.btn-outline .solid { color: var(--accent); }
 
 .moods { display: flex; flex-direction: column; gap: 12px; }
 .moods ul { display: flex; flex-direction: column; gap: 1px; }
@@ -372,19 +356,6 @@ a { color: inherit; text-decoration: none; }
 .tip-title { font-size: 13px; font-weight: 600; }
 .tip p { font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
 
-.link-micro {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.link-micro:hover { color: var(--accent-hover); }
 
 .sidebar-foot {
   margin-top: auto;
@@ -476,20 +447,62 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 10px 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
 
-.link-quiet {
-  display: inline-flex;
+/* Compact search, sized to sit inside the existing heading row. */
+.search {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  flex: 0 1 240px;
+  min-width: 0;
+}
+.search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--icon-muted);
+  pointer-events: none;
+}
+.search input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 7px 28px 7px 30px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.search input::placeholder { color: var(--text-2); }
+.search input:hover { border-color: var(--border-hover); }
+/* Our own clear button replaces the native one. */
+.search input::-webkit-search-cancel-button,
+.search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+
+.search-clear {
+  position: absolute;
+  right: 5px;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--icon-muted);
+  transition: color .15s ease, background-color .15s ease;
+}
+.search-clear:hover { color: var(--text); background: var(--active); }
+
+.result-count {
   font-size: 12px;
   color: var(--text-2);
-  transition: color .15s ease;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
-.link-quiet:hover { color: var(--accent); }
+
 
 .theme-grid {
   display: grid;
@@ -635,7 +648,7 @@ a { color: inherit; text-decoration: none; }
 
 /* PuTTY-style decimal RGB groups */
 /* Vertical rhythm is tightened here; no rows or groups are removed. */
-.color-groups { display: flex; flex-direction: column; gap: 13px; }
+.color-groups { display: flex; flex-direction: column; gap: 12px; }
 
 .color-group {
   border-top: 1px solid var(--border-subtle);
@@ -674,22 +687,6 @@ a { color: inherit; text-decoration: none; }
   text-align: right;
 }
 
-.copy-rgb {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 7px;
-  padding: 6px 9px;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
-}
-.copy-rgb:hover { color: var(--accent); border-color: var(--accent); background: var(--active); }
 
 .copy-btn {
   position: relative;
@@ -701,14 +698,10 @@ a { color: inherit; text-decoration: none; }
 .copy-btn:hover { color: var(--text); background: var(--active); }
 
 /* Shared copied-value feedback */
-.copy-btn .ic-check,
-.copy-rgb .ic-check { display: none; }
-.copy-btn.is-copied,
-.copy-rgb.is-copied { color: var(--accent); }
-.copy-btn.is-copied .ic-copy,
-.copy-rgb.is-copied .ic-copy { display: none; }
-.copy-btn.is-copied .ic-check,
-.copy-rgb.is-copied .ic-check { display: block; }
+.copy-btn .ic-check { display: none; }
+.copy-btn.is-copied { color: var(--accent); }
+.copy-btn.is-copied .ic-copy { display: none; }
+.copy-btn.is-copied .ic-check { display: block; }
 
 .details-desc {
   font-size: 12.5px;
@@ -716,25 +709,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-2);
 }
 
-.download { display: flex; flex-direction: column; gap: 11px; align-items: flex-start; }
 
-.btn-primary {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  background: var(--accent-solid);
-  color: #FFFDF9;
-  border-radius: 3px;
-  padding: 13px 16px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-  transition: background-color .15s ease;
-}
-.btn-primary:hover { background: var(--accent-solid-hover); }
 
 /* Appearance toggle: sun in light mode, moon in dark. */
 .appearance-btn .ic-moon { display: none; }
@@ -848,6 +823,8 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 560px) {
   .theme-grid { grid-template-columns: minmax(0, 1fr); }
   .card-desc { min-height: 0; }
+  /* Search takes its own row below the heading and count. */
+  .search { flex: 1 1 100%; order: 3; }
   .strip-inner { grid-template-columns: minmax(0, 1fr); }
   .feature { border-left: 0; padding-left: 0; }
   .feature + .feature { border-top: 1px solid var(--border-subtle); }

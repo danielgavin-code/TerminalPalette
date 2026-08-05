@@ -13,12 +13,11 @@
     <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.2 9.5h17.6M3.2 14.5h17.6M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></symbol>
     <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9.5 6 5.5 6-5.5"/></symbol>
-    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13.5 6.5 19.5 12l-6 5.5"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5A1.5 1.5 0 0 0 13.5 4H6a2 2 0 0 0-2 2v7.5A1.5 1.5 0 0 0 5.5 15"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
-    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5M4.5 19.5h15"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.2 2.9 7.6 7 9 4.1-1.4 7-4.8 7-9V6Z"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.4 0 2-.9 2-1.8 0-1.4-1-1.7-1-2.9 0-.9.7-1.6 1.7-1.6H17a4.5 4.5 0 0 0 4.5-4.5C21.5 6.2 17.2 3 12 3Z"/><circle cx="7.5" cy="12" r="1.1"/><circle cx="10" cy="7.8" r="1.1"/><circle cx="15.2" cy="8.2" r="1.1"/></symbol>
@@ -88,12 +87,7 @@
     <section class="sidebar-intro">
       <p class="eyebrow">Find your terminal colors</p>
       <h1 class="display">Terminal colors.<br>Clearer sessions.</h1>
-      <p class="lede">Browse and test color themes for PuTTY without editing each value manually.</p>
-      <button type="button" class="btn-outline" data-placeholder>
-        <svg class="icon icon-sm solid" aria-hidden="true"><use href="#i-play"/></svg>
-        <span>How it works</span>
-        <svg class="icon icon-sm trail" aria-hidden="true"><use href="#i-arrow"/></svg>
-      </button>
+      <p class="lede">Browse terminal palettes, compare their RGB values, and enter the selected colors into PuTTY.</p>
     </section>
 
     <nav class="moods" aria-label="Moods">
@@ -116,11 +110,7 @@
     <aside class="tip" aria-labelledby="tip-title">
       <svg class="icon icon-sm tip-icon" aria-hidden="true"><use href="#i-sun"/></svg>
       <h2 class="tip-title" id="tip-title">Quick tip</h2>
-      <p>Most PuTTY users only need to change background and foreground.</p>
-      <button type="button" class="link-micro" data-placeholder>
-        Learn more
-        <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"/></svg>
-      </button>
+      <p>PuTTY colors are entered as separate Red, Green, and Blue values.</p>
     </aside>
 
     <div class="sidebar-foot">
@@ -173,13 +163,24 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
       </div>
     </section>
 
-    <section class="featured" aria-labelledby="featured-title">
+    <section class="featured" aria-labelledby="themes-title">
       <div class="section-head">
-        <h2 class="rubric" id="featured-title">Featured themes</h2>
-        <button type="button" class="link-quiet" data-placeholder>
-          View all themes
-          <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"/></svg>
-        </button>
+        <h2 class="rubric" id="themes-title">Themes</h2>
+
+        <div class="search">
+          <label class="sr-only" for="theme-search">Search themes</label>
+          <svg class="icon icon-sm search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="search" id="theme-search" placeholder="Search themes"
+                 autocomplete="off" spellcheck="false">
+          <button type="button" class="search-clear" id="search-clear" hidden
+                  aria-label="Clear search">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="#i-close"/></svg>
+          </button>
+        </div>
+
+        <p class="result-count" id="result-count" role="status" aria-live="polite">
+          {{ themes|length }} themes
+        </p>
       </div>
 
       <ul class="theme-grid" id="theme-grid">
@@ -262,30 +263,11 @@ drwxr-xr-x   4 user   staff
           </li>
           {% endfor %}
         </ul>
-        <button type="button" class="copy-rgb" data-copy-rgb="{{ key }}"
-                aria-label="Copy {{ label|lower }} red, green and blue values">
-          <svg class="icon icon-xs ic-copy" aria-hidden="true"><use href="#i-copy"/></svg>
-          <svg class="icon icon-xs ic-check" aria-hidden="true"><use href="#i-check"/></svg>
-          <span>Copy RGB</span>
-        </button>
       </section>
       {% endfor %}
     </div>
 
     <p class="details-desc" id="detail-desc">{{ initial.description }}</p>
-
-    <section class="download" aria-labelledby="dl-title">
-      <p class="eyebrow" id="dl-title">Download for PuTTY</p>
-      {# Placeholder: file generation is a future implementation point. #}
-      <button type="button" class="btn-primary" id="download-btn" data-placeholder>
-        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"/></svg>
-        <span>Download .reg file</span>
-      </button>
-      <button type="button" class="link-quiet" data-placeholder>
-        How to install
-        <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"/></svg>
-      </button>
-    </section>
 
     <section class="meta" aria-labelledby="meta-title">
       <p class="eyebrow" id="meta-title">Details</p>
@@ -315,7 +297,7 @@ drwxr-xr-x   4 user   staff
     <div class="feature">
       <svg class="icon feature-icon" aria-hidden="true"><use href="#i-shield"/></svg>
       <h2>Built for PuTTY</h2>
-      <p>One-click install with .reg files. No manual setup.</p>
+      <p>Palette values ready to enter into PuTTY.</p>
     </div>
     <div class="feature">
       <svg class="icon feature-icon" aria-hidden="true"><use href="#i-eye"/></svg>
