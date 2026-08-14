@@ -313,6 +313,17 @@ a { color: inherit; text-decoration: none; }
   gap: 18px;
 }
 
+/* Article column inside the workspace centre. The centre column already
+   carries the gutter padding, so this only sets the measure. */
+.article {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.article .display { font-size: 27px; }
+
 /* -------------------------------------------------- 7. Sidebar --- */
 .sidebar-intro { display: flex; flex-direction: column; gap: 10px; }
 /* 26px keeps "Clearer sessions." (the wider of the two lines, 7.16em in

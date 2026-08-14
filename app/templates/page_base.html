@@ -1,0 +1,23 @@
+{# Shared scaffolding for the article pages: same three-column workspace as
+   the homepage, same sidebar and details panel. The centre column holds an
+   article instead of the preview and grid, and no `moods` is passed, so the
+   sidebar omits the mood list. #}
+{% extends "base.html" %}
+
+{% block content %}
+<main class="workspace" id="main">
+
+  {# ------------------------------ Sidebar ------------------------ #}
+  {% include "_sidebar.html" %}
+
+  {# ------------------------------ Center ------------------------- #}
+  <div class="center">
+    <article class="article">
+      {% block article %}{% endblock %}
+    </article>
+  </div>
+
+  {# ------------------------------ Details ------------------------ #}
+  {% include "_details.html" %}
+</main>
+{% endblock %}

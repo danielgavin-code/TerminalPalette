@@ -1,0 +1,87 @@
+{# Shared right column, identical on every page. Seeded from `initial`;
+   app.js swaps in the stored selection on the article pages. #}
+  <div class="details" id="details">
+
+    <h2 class="details-title" id="detail-name">{{ initial.name }}</h2>
+
+    <div class="mini-term" id="mini-terminal">
+      <div class="mini-bar" aria-hidden="true">
+        <span class="dot dot-rust"></span>
+        <span class="dot dot-amber"></span>
+        <span class="dot dot-green"></span>
+      </div>
+      <div class="mini-scroll">
+<pre class="mini-body"><span class="tprompt">user@host:~ $</span> ls -la
+drwxr-xr-x   4 user   staff
+-rw-r--r--   1 user   staff
+-rw-r--r--   1 user   staff
+
+<span class="tprompt">user@host:~ $</span> <span class="tcursor" aria-hidden="true"></span></pre>
+      </div>
+    </div>
+
+    {# PuTTY-style decimal RGB. Values are filled in by app.js from the theme
+       hex; hex remains the single stored representation in themes.py. #}
+    <div class="color-groups" id="color-groups">
+      {# Labels match PuTTY's own wording, including its British "Colour". #}
+      {% for key, label in [('background', 'Default Background'), ('foreground', 'Default Foreground'), ('cursor', 'Cursor Colour')] %}
+      <section class="color-group" aria-labelledby="grp-{{ key }}">
+        <div class="group-head">
+          <h3 class="group-label" id="grp-{{ key }}">{{ label }}</h3>
+          <span class="chip" data-chip="{{ key }}" style="background: {{ initial[key].hex }}" aria-hidden="true"></span>
+        </div>
+        <ul class="channels">
+          {% for ch, ch_label in [('r', 'Red'), ('g', 'Green'), ('b', 'Blue')] %}
+          <li class="channel">
+            <span class="ch-label">{{ ch_label }}</span>
+            <span class="ch-value" data-ch="{{ key }}-{{ ch }}"></span>
+            <button type="button" class="copy-btn" data-copy-value="{{ key }}-{{ ch }}"
+                    aria-label="Copy {{ label|lower }} {{ ch_label|lower }} value">
+              <svg class="icon icon-xs ic-copy" aria-hidden="true"><use href="#i-copy"/></svg>
+              <svg class="icon icon-xs ic-check" aria-hidden="true"><use href="#i-check"/></svg>
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
+    </div>
+
+    <p class="details-desc" id="detail-desc">{{ initial.description }}</p>
+
+    <section class="meta" aria-labelledby="meta-title">
+      <p class="eyebrow" id="meta-title">Details</p>
+      <dl class="meta-list">
+        <div class="meta-row"><dt>Created</dt><dd id="detail-created">{{ initial.created }}</dd></div>
+        <div class="meta-row"><dt>Inspired by</dt><dd id="detail-inspired">{{ initial.inspired_by }}</dd></div>
+        <div class="meta-row"><dt>Version</dt><dd id="detail-version">{{ initial.version }}</dd></div>
+        <div class="meta-row"><dt>Category</dt><dd><span class="pill" id="detail-category">{{ initial.category }}</span></dd></div>
+        {# Omitted outright when a theme has no environments — no dash, no
+           placeholder, no reserved space. app.js applies the same rule on
+           selection, and the same initialism rule for UAT and DR. #}
+        {% set ENV_UPPER = ['uat', 'dr'] %}
+        <div class="meta-row" id="detail-suits-row"{% if not initial.environments %} hidden{% endif %}>
+          <dt>Suits</dt>
+          <dd id="detail-suits">{% for env in initial.environments %}{{ env|upper if env in ENV_UPPER else env|capitalize }}{{ ', ' if not loop.last }}{% endfor %}</dd>
+        </div>
+      </dl>
+    </section>
+
+    {# An anchor, not a button: the download works without JavaScript, and
+       app.js only re-points it when the selection changes. #}
+    <a class="download-btn" id="detail-download"
+       href="{{ url_for('main.theme_reg', theme_id=initial.id) }}"
+       data-url-template="{{ url_for('main.theme_reg', theme_id='__ID__') }}"
+       download
+       aria-label="Download .reg file for {{ initial.name }}">
+      Download .reg file
+    </a>
+
+    <div class="details-fav">
+      <button type="button" class="fav-toggle" id="detail-fav" aria-pressed="false">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>
+        <span id="detail-fav-label">Add to favorites</span>
+      </button>
+    </div>
+
+  </div>

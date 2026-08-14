@@ -6,14 +6,9 @@
 (function () {
   'use strict';
 
-  var dataEl = document.getElementById('theme-data');
-  if (!dataEl) { return; }
-
-  var THEMES = JSON.parse(dataEl.textContent);
-  var BY_ID = {};
-  THEMES.forEach(function (t) { BY_ID[t.id] = t; });
 
   var FAV_KEY = 'tp:favorites';
+  var SELECTED_KEY = 'tp:selected';
   var APPEARANCE_KEY = 'tp:appearance';
 
   var el = {
@@ -46,6 +41,50 @@
     pagePrev:   document.getElementById('page-prev'),
     pageNext:   document.getElementById('page-next')
   };
+
+  /* ------------------------------------------------ appearance -- */
+
+  function currentAppearance() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function renderAppearance() {
+    var dark = currentAppearance() === 'dark';
+    if (el.appLabel) { el.appLabel.textContent = dark ? 'Dark' : 'Light'; }
+    if (el.appHint) {
+      el.appHint.textContent = dark ? ', switch to light mode' : ', switch to dark mode';
+    }
+    if (el.appHeader) {
+      el.appHeader.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+  }
+
+  function toggleAppearance() {
+    var next = currentAppearance() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      window.localStorage.setItem(APPEARANCE_KEY, next);
+    } catch (e) {
+      /* Storage unavailable; the choice still applies for this page view. */
+    }
+    renderAppearance();
+    announce(next === 'dark' ? 'Dark mode on' : 'Light mode on');
+  }
+
+  // Wired before the theme-data guard: the guide and about pages carry the
+  // same header toggle but no theme data, and the toggle has to work there
+  // too. Everything below the guard is grid-and-details behaviour.
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.appearance-btn')) { toggleAppearance(); }
+  });
+  renderAppearance();
+
+  var dataEl = document.getElementById('theme-data');
+  if (!dataEl) { return; }
+
+  var THEMES = JSON.parse(dataEl.textContent);
+  var BY_ID = {};
+  THEMES.forEach(function (t) { BY_ID[t.id] = t; });
 
   var CARDS = el.grid
     ? Array.prototype.slice.call(el.grid.querySelectorAll('.theme-card'))
@@ -104,7 +143,7 @@
   // replaceState keeps the address bar in step without stacking history
   // entries, and without the scroll jump that assigning location.hash causes.
   function syncHash(id) {
-    if (!window.history || !window.history.replaceState) { return; }
+    if (!HAS_GRID || !window.history || !window.history.replaceState) { return; }
     try {
       window.history.replaceState(window.history.state, '',
         window.location.pathname + window.location.search + '#' + id);
@@ -120,9 +159,35 @@
     return i === -1 ? page : Math.floor(i / pageSize()) + 1;
   }
 
-  // A hash naming an active theme wins over the shuffle for the opening
-  // selection. The shuffle still runs, and the order is unaffected.
-  var selected = hashId() || (ORDER.length ? ORDER[0] : null);
+  // The theme grid only exists on the homepage. Everything gated on this is
+  // grid behaviour: the shuffle, filters, pagination and hash linking.
+  var HAS_GRID = !!el.grid;
+
+  // The last selection, carried to the article pages. Never consulted on the
+  // homepage, where the shuffle and the hash decide.
+  function storedSelection() {
+    try {
+      var id = window.localStorage.getItem(SELECTED_KEY);
+      return id && BY_ID[id] ? id : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function rememberSelection(id) {
+    try {
+      window.localStorage.setItem(SELECTED_KEY, id);
+    } catch (e) {
+      /* Storage unavailable; the selection still applies for this page view. */
+    }
+  }
+
+  // Homepage: a hash naming an active theme wins over the shuffle, and the
+  // shuffle decides otherwise. Article pages: the stored selection, falling
+  // back to the first theme in display_order. They never shuffle.
+  var selected = HAS_GRID
+    ? (hashId() || (ORDER.length ? ORDER[0] : null))
+    : (storedSelection() || (THEMES.length ? THEMES[0].id : null));
   var mood = 'all';
   var query = '';
   var matching = [];
@@ -191,14 +256,19 @@
     var theme = BY_ID[id];
     if (!theme) { return; }
     selected = id;
+    // Persisted on every change, load-time included: the article pages open
+    // on whatever the homepage last showed.
+    rememberSelection(id);
 
-    // Card state
-    Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
-      var on = card.getAttribute('data-id') === id;
-      card.classList.toggle('is-selected', on);
-      var btn = card.querySelector('[data-select]');
-      if (btn) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
-    });
+    // Card state, homepage only.
+    if (el.grid) {
+      Array.prototype.forEach.call(el.grid.querySelectorAll('.theme-card'), function (card) {
+        var on = card.getAttribute('data-id') === id;
+        card.classList.toggle('is-selected', on);
+        var btn = card.querySelector('[data-select]');
+        if (btn) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+      });
+    }
 
     // Details panel text
     if (el.name) { el.name.textContent = theme.name; }
@@ -412,35 +482,6 @@
     el.search.focus();
   }
 
-  /* ------------------------------------------------ appearance -- */
-
-  function currentAppearance() {
-    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  }
-
-  function renderAppearance() {
-    var dark = currentAppearance() === 'dark';
-    if (el.appLabel) { el.appLabel.textContent = dark ? 'Dark' : 'Light'; }
-    if (el.appHint) {
-      el.appHint.textContent = dark ? ', switch to light mode' : ', switch to dark mode';
-    }
-    if (el.appHeader) {
-      el.appHeader.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
-    }
-  }
-
-  function toggleAppearance() {
-    var next = currentAppearance() === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try {
-      window.localStorage.setItem(APPEARANCE_KEY, next);
-    } catch (e) {
-      /* Storage unavailable; the choice still applies for this page view. */
-    }
-    renderAppearance();
-    announce(next === 'dark' ? 'Dark mode on' : 'Light mode on');
-  }
-
   /* ------------------------------------------------ clipboard ---- */
 
   function copyValue(text, btn) {
@@ -513,8 +554,6 @@
     var moodBtn = e.target.closest('[data-mood]');
     if (moodBtn) { setMood(moodBtn.getAttribute('data-mood')); return; }
 
-    if (e.target.closest('.appearance-btn')) { toggleAppearance(); return; }
-
     // Placeholder controls must not navigate or act.
     var placeholder = e.target.closest('[data-placeholder]');
     if (placeholder) { e.preventDefault(); }
@@ -542,7 +581,7 @@
 
   // Editing the hash, or arriving at a different one, selects that theme in
   // place. Filters and search are left exactly as they are.
-  window.addEventListener('hashchange', function () {
+  if (HAS_GRID) { window.addEventListener('hashchange', function () {
     var id = hashId();
     if (!id || id === selected) { return; }
     selectTheme(id);
@@ -552,15 +591,16 @@
       page = pageForSelected();
       render();
     }
-  });
+  }); }
 
   applyOrder();
   if (selected) { selectTheme(selected, true); }
   renderFavorites();
-  renderAppearance();
-  // Not applyFilters(): that resets to page 1, which would strand a linked
-  // theme on a later page. Same work, then pagination opens on its card.
-  computeMatches();
-  page = pageForSelected();
-  render();
+  if (HAS_GRID) {
+    // Not applyFilters(): that resets to page 1, which would strand a linked
+    // theme on a later page. Same work, then pagination opens on its card.
+    computeMatches();
+    page = pageForSelected();
+    render();
+  }
 })();

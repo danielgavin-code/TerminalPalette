@@ -1,0 +1,55 @@
+{# Shared left column. The moods list renders only where there is a theme
+   grid to filter — the article pages pass no `moods`. #}
+  <div class="sidebar">
+
+    {# On the homepage this is the page heading. On the article pages the
+       article's own h1 is, so this steps down to h2 — .display carries the
+       styling, so nothing changes visually. #}
+    {% set intro_tag = 'h1' if page == 'explore' else 'h2' %}
+    <section class="sidebar-intro">
+      <p class="eyebrow">Find your terminal colors</p>
+      <{{ intro_tag }} class="display">Terminal colors.<br>Clearer sessions.</{{ intro_tag }}>
+      <p class="lede">Browse terminal palettes, compare their RGB values, and enter the selected colors into PuTTY.</p>
+    </section>
+
+{% if moods %}
+    <nav class="moods" aria-label="Moods">
+      <h2 class="rubric">Moods</h2>
+      <ul>
+        {% for mood in moods %}
+        <li>
+          <button type="button" class="mood{% if loop.first %} is-selected{% endif %}"
+                  data-mood="{{ mood.key }}"
+                  {% if loop.first %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-{{ mood.icon }}"/></svg>
+            <span class="mood-label">{{ mood.label }}</span>
+            <span class="mood-count">{{ mood.count }}</span>
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+{% endif %}
+
+    <aside class="tip" aria-labelledby="tip-title">
+      <svg class="icon icon-sm tip-icon" aria-hidden="true"><use href="#i-sun"/></svg>
+      <h2 class="tip-title" id="tip-title">Quick tip</h2>
+      <p>PuTTY colors are entered as separate Red, Green, and Blue values.</p>
+    </aside>
+
+    <div class="sidebar-foot">
+      <button type="button" class="foot-btn appearance-btn" id="appearance-side">
+        <svg class="icon icon-sm ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        <svg class="icon icon-sm ic-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        <span id="appearance-label">Light</span>
+        <span class="sr-only" id="appearance-hint">, switch to dark mode</span>
+      </button>
+      <span class="v-rule" aria-hidden="true"></span>
+      <button type="button" class="foot-btn" data-placeholder>
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-globe"/></svg>
+        <span>English</span>
+        <svg class="icon icon-xs" aria-hidden="true"><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+
+  </div>

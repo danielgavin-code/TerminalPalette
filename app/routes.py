@@ -12,10 +12,44 @@ main = Blueprint("main", __name__)
 def index():
     return render_template(
         "index.html",
+        page="explore",
         themes=active_themes(),
         moods=build_moods(),
         initial=initial_theme(),
     )
+
+
+# `page` drives the active nav underline in base.html. Passing it from the
+# view keeps the nav out of the templates' hands and avoids relying on a
+# child-template `set` reaching the parent.
+#
+# The article pages carry the same sidebar and details panel, so they need the
+# collection and a seed theme too. They pass no `moods`: without a theme grid
+# there is nothing to filter, so the sidebar omits that list. The seed is the
+# display-order first theme; app.js swaps in the stored selection if there is
+# one. These pages never shuffle.
+def _article(template, page):
+    return render_template(
+        template,
+        page=page,
+        themes=active_themes(),
+        initial=initial_theme(),
+    )
+
+
+@main.route("/guide")
+def guide():
+    return _article("guide.html", "guide")
+
+
+@main.route("/about")
+def about():
+    return _article("about.html", "about")
+
+
+@main.route("/lookbook")
+def lookbook():
+    return _article("lookbook.html", "lookbook")
 
 
 @main.route("/themes/<theme_id>.reg")
