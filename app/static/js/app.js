@@ -26,6 +26,8 @@
     created:    document.getElementById('detail-created'),
     inspired:   document.getElementById('detail-inspired'),
     version:    document.getElementById('detail-version'),
+    suits:      document.getElementById('detail-suits'),
+    suitsRow:   document.getElementById('detail-suits-row'),
     download:   document.getElementById('detail-download'),
     detailFav:  document.getElementById('detail-fav'),
     favLabel:   document.getElementById('detail-fav-label'),
@@ -206,6 +208,7 @@
     if (el.inspired) { el.inspired.textContent = theme.inspired_by; }
     if (el.version) { el.version.textContent = theme.version; }
 
+    renderEnvironments(theme);
     renderColors(theme);
     renderDownload(theme);
 
@@ -221,6 +224,26 @@
       syncHash(id);
       announce(theme.name + ' selected');
     }
+  }
+
+  /* ------------------------------------------------ suits ------- */
+
+  // uat and dr are initialisms; everything else is sentence case. index.html
+  // applies the same rule for the server-rendered row.
+  var ENV_UPPER = { uat: true, dr: true };
+
+  function environmentLabel(env) {
+    return ENV_UPPER[env]
+      ? env.toUpperCase()
+      : env.charAt(0).toUpperCase() + env.slice(1);
+  }
+
+  // A theme with no environments loses the row entirely rather than showing a
+  // placeholder; `hidden` leaves no reserved space.
+  function renderEnvironments(theme) {
+    var envs = theme.environments || [];
+    if (el.suits) { el.suits.textContent = envs.map(environmentLabel).join(', '); }
+    if (el.suitsRow) { el.suitsRow.hidden = envs.length === 0; }
   }
 
   /* ------------------------------------------------ colours ----- */

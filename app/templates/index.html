@@ -285,6 +285,14 @@ drwxr-xr-x   4 user   staff
         <div class="meta-row"><dt>Inspired by</dt><dd id="detail-inspired">{{ initial.inspired_by }}</dd></div>
         <div class="meta-row"><dt>Version</dt><dd id="detail-version">{{ initial.version }}</dd></div>
         <div class="meta-row"><dt>Category</dt><dd><span class="pill" id="detail-category">{{ initial.category }}</span></dd></div>
+        {# Omitted outright when a theme has no environments — no dash, no
+           placeholder, no reserved space. app.js applies the same rule on
+           selection, and the same initialism rule for UAT and DR. #}
+        {% set ENV_UPPER = ['uat', 'dr'] %}
+        <div class="meta-row" id="detail-suits-row"{% if not initial.environments %} hidden{% endif %}>
+          <dt>Suits</dt>
+          <dd id="detail-suits">{% for env in initial.environments %}{{ env|upper if env in ENV_UPPER else env|capitalize }}{{ ', ' if not loop.last }}{% endfor %}</dd>
+        </div>
       </dl>
     </section>
 

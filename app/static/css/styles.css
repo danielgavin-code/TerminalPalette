@@ -767,6 +767,9 @@ a { color: inherit; text-decoration: none; }
   padding: 8px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
+/* `display: flex` above would beat the user-agent [hidden] rule, so the row
+   needs this to disappear completely — same pattern as .theme-card[hidden]. */
+.meta-row[hidden] { display: none; }
 .meta-row dt { font-size: 12.5px; color: var(--text-2); }
 .meta-row dd { font-size: 12.5px; text-align: right; }
 
