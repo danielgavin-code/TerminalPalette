@@ -5,9 +5,12 @@ Dependency-free. Development only — never imported by a request path.
 
     python validate_themes.py          # summary + failures
     python validate_themes.py --table  # full contrast table for every theme
+    python validate_themes.py --similar                     # live collection
+    python validate_themes.py --similar --include-inactive  # + rotated-out
 
 Checks schema integrity (counts, required fields, uniqueness, RGB/hex
-agreement, valid moods and seasons, unique display order) and WCAG contrast:
+agreement, valid moods, seasons and rotations, unique display order) and
+WCAG contrast:
 
     foreground vs background  >= 4.5:1
     cursor     vs background  >= 3.0:1
@@ -17,8 +20,8 @@ import math
 import sys
 
 from app.themes import (
-    MAX_ENVIRONMENTS, THEMES, VALID_ENVIRONMENTS, VALID_MOODS, VALID_SEASONS,
-    active_themes,
+    MAX_ENVIRONMENTS, THEMES, VALID_ENVIRONMENTS, VALID_MOODS, VALID_ROTATIONS,
+    VALID_SEASONS, active_themes,
 )
 
 # No hardcoded total. The collection size is whatever the active data holds;
@@ -61,6 +64,15 @@ def band_for(score):
 
 ENV_FLOOR = 3
 
+# Deliberate tripwire, stated rather than derived: an accidental addition,
+# removal or rotation change fails the run instead of silently redefining the
+# collection. Update it only when the size change is intentional.
+EXPECTED_ACTIVE = 30
+
+# The only rotations allowed to sit inactive. A core or limited theme that is
+# not rendering is a mistake, not a rotation.
+INACTIVE_ROTATIONS = {"seasonal", "archived"}
+
 FG_MIN = 4.5
 CURSOR_MIN = 3.0
 FG_PREFERRED = 7.0
@@ -68,7 +80,7 @@ FG_PREFERRED = 7.0
 REQUIRED = (
     "id", "name", "description", "moods", "category",
     "background", "foreground", "cursor", "palette",
-    "inspired_by", "created", "version", "active", "season",
+    "inspired_by", "created", "version", "active", "season", "rotation",
     "featured", "display_order", "environments",
 )
 
@@ -247,9 +259,20 @@ def check_schema(themes):
     seen_ids, seen_names, seen_orders = {}, {}, {}
 
     active = [t for t in themes if t.get("active")]
-    if len(themes) != len(active):
-        errors.append(f"{len(themes) - len(active)} inactive entr(ies) present; "
-                      "the collection total must equal the active count")
+    if len(active) != EXPECTED_ACTIVE:
+        errors.append(f"{len(active)} active themes, expected {EXPECTED_ACTIVE}; "
+                      "update EXPECTED_ACTIVE if the change was intentional")
+    # Inactive is legitimate only as a rotation state. Anything else inactive
+    # is a theme that has silently stopped rendering.
+    for t in themes:
+        if t.get("active"):
+            continue
+        name = t.get("name") or t.get("id") or "<unnamed>"
+        rotation = t.get("rotation")
+        if rotation not in INACTIVE_ROTATIONS:
+            errors.append(f"{name}: inactive with rotation '{rotation}'; only "
+                          f"{' or '.join(sorted(INACTIVE_ROTATIONS))} may be inactive")
+
     for t in themes:
         if t.get("id") in REMOVED_IDS:
             errors.append(f"'{t['id']}' was removed in the audit but is present again")
@@ -302,6 +325,10 @@ def check_schema(themes):
                 errors.append(f"{label}: unknown mood '{mood}'")
         if t["season"] not in VALID_SEASONS:
             errors.append(f"{label}: unknown season '{t['season']}'")
+        # `rotation` is independent of `season`: it records why the theme is in
+        # the collection, not when it surfaces.
+        if t["rotation"] not in VALID_ROTATIONS:
+            errors.append(f"{label}: unknown rotation '{t['rotation']}'")
 
         envs = t["environments"]
         if not isinstance(envs, list):
@@ -359,9 +386,13 @@ def check_environments(themes):
             if tid not in by_id:
                 errors.append(f"{env}: no theme with id '{tid}'")
 
+    # The floor counts active themes only: a rotated-out theme keeps its
+    # recommendation, but it cannot cover an environment while it is dark.
+    active_ids = {t["id"] for t in themes if t.get("active") and "id" in t}
     for env, ids in sorted(actual.items()):
-        if len(ids) < ENV_FLOOR:
-            errors.append(f"environment '{env}' has {len(ids)} themes; "
+        live = ids & active_ids
+        if len(live) < ENV_FLOOR:
+            errors.append(f"environment '{env}' has {len(live)} active theme(s); "
                           f"floor is {ENV_FLOOR}")
 
     bell = by_id.get("closing-bell")
@@ -382,8 +413,13 @@ def check_moods(themes):
     return errors, counts
 
 
-def print_similarity(active, top=15):
-    """Development-only similarity audit. Never rendered on the site."""
+def print_similarity(themes, top=15, scope="active"):
+    """Development-only similarity audit. Never rendered on the site.
+
+    `themes` is the comparison pool. Pass every defined theme (--include-
+    inactive) to check a rotated-out theme against the live collection before
+    it comes back; inactive entries are marked with an asterisk.
+    """
     print("colour pipeline self-check (sRGB -> XYZ -> CIELAB -> dE00)")
     print(f"  {'check':<24} {'computed':<24} reference")
     for name, got, want in self_check():
@@ -392,8 +428,11 @@ def print_similarity(active, top=15):
 
     print(f"\nweighting: background {WEIGHTS['background']:.0%}, "
           f"foreground {WEIGHTS['foreground']:.0%}, cursor {WEIGHTS['cursor']:.0%}")
-    print(f"closest {top} pairs of {len(active)} active themes "
-          f"({len(active) * (len(active) - 1) // 2} comparisons)\n")
+    dark_count = sum(1 for t in themes if not t.get("active"))
+    print(f"closest {top} pairs of {len(themes)} {scope} themes "
+          f"({len(themes) * (len(themes) - 1) // 2} comparisons)"
+          + (f"\n* marks the {dark_count} inactive theme(s) in the pool"
+             if dark_count else "") + "\n")
     print(f"{'#':>2} {'pair':<38} {'total':>6} {'bg':>6} {'fg':>6} {'cur':>6} "
           f"{'pal':>6}  {'L/D':<7} band")
     print("-" * 100)
@@ -401,9 +440,12 @@ def print_similarity(active, top=15):
     def tone(t):
         return "light" if luminance(t["background"]["rgb"]) > 0.4 else "dark"
 
-    rows = similarity_report(active, top)
+    def label_of(t):
+        return t["name"] + ("" if t.get("active") else "*")
+
+    rows = similarity_report(themes, top)
     for i, (w, a, b, d) in enumerate(rows, 1):
-        pair = f"{a['name']} / {b['name']}"
+        pair = f"{label_of(a)} / {label_of(b)}"
         ld = f"{tone(a)[0].upper()}/{tone(b)[0].upper()}"
         print(f"{i:>2} {pair:<38} {w:6.2f} {d['background']:6.2f} "
               f"{d['foreground']:6.2f} {d['cursor']:6.2f} {d['palette']:6.2f}  "
@@ -417,7 +459,7 @@ def print_similarity(active, top=15):
             for t in (a, b):
                 fg = contrast(t["foreground"]["rgb"], t["background"]["rgb"])
                 cur = contrast(t["cursor"]["rgb"], t["background"]["rgb"])
-                print(f"    {t['name']:<20} {t['background']['hex']} {t['foreground']['hex']} "
+                print(f"    {label_of(t):<20} {t['background']['hex']} {t['foreground']['hex']} "
                       f"{t['cursor']['hex']}  {tone(t):<5} fg {fg:5.2f}:1 cur {cur:4.2f}:1  "
                       f"moods={','.join(t['moods'])}  env={','.join(t['environments']) or '-'}")
             print(f"    -> weighted {w:.2f} ({band_for(w)})\n")
@@ -431,10 +473,14 @@ def print_similarity(active, top=15):
 def main():
     show_table = "--table" in sys.argv
     show_similar = "--similar" in sys.argv
+    include_inactive = "--include-inactive" in sys.argv
     active = active_themes()
 
     if show_similar:
-        print_similarity(active)
+        # Rotated-out themes are excluded by default so the audit describes the
+        # live collection; --include-inactive checks a returning theme against it.
+        pool = list(THEMES) if include_inactive else active
+        print_similarity(pool, scope="defined" if include_inactive else "active")
         print()
 
     schema_errors = check_schema(THEMES)
@@ -457,10 +503,19 @@ def main():
     print(f"themes defined : {len(THEMES)}")
     print(f"active themes  : {len(active)}")
     print(f"mood counts    : " + ", ".join(f"{m}={counts[m]}" for m in sorted(counts)))
+    # Counted over every defined theme, not just the active ones: an archived
+    # theme is exactly the case that would not appear in the active list.
+    print(f"rotation counts: " + ", ".join(
+        f"{r}={sum(1 for t in THEMES if t.get('rotation') == r)}"
+        for r in sorted(VALID_ROTATIONS)))
+    # Counts are of active themes — the floor is about live coverage. A
+    # rotated-out theme keeps its recommendation and is listed with a *.
     print("environments   :")
     for env in sorted(EXPECTED_ENVIRONMENTS):
-        names = sorted(t["name"] for t in THEMES if env in t.get("environments", []))
-        print(f"    {env:<12} {len(names)}  {', '.join(names)}")
+        members = [t for t in THEMES if env in t.get("environments", [])]
+        live = sorted(t["name"] for t in members if t.get("active"))
+        dark = sorted(t["name"] + "*" for t in members if not t.get("active"))
+        print(f"    {env:<12} {len(live)}  {', '.join(live + dark)}")
     unassigned = [t["name"] for t in THEMES if not t.get("environments")]
     print(f"    {'(none)':<12} {len(unassigned)}  {', '.join(sorted(unassigned))}")
     print(f"foreground >= {FG_PREFERRED}:1 : "

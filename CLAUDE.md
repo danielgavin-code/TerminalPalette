@@ -70,23 +70,47 @@ that context. **This field is not displayed anywhere**: no badge, label,
 tooltip, filter, or search term. It is recorded for possible future filtering.
 
 **Seasonal rotation.** Every theme carries `active`, `season`
-(`permanent` / `spring` / `summer` / `autumn` / `winter`) and `display_order`.
-Only `active` themes render, ordered by `display_order`. There is no
-scheduling logic, no date reading, and no visible season filter — rotating a
-set later means editing those data values only.
+(`permanent` / `spring` / `summer` / `autumn` / `winter`), `rotation` and
+`display_order`. Only `active` themes render, ordered by `display_order`.
+There is no scheduling logic, no date reading, and no visible season filter —
+rotating a set later means editing those data values only.
 
-Both seasonal rotation and environment recommendations are controlled purely
-through theme data — no scheduling, no UI, no code changes needed to revise
-either.
+**Rotation.** Every theme carries `rotation`
+(`core` / `seasonal` / `limited` / `archived`), defaulting to `core`. It is
+**distinct from `season` and does not replace it**: `rotation` records *why* a
+theme is in the collection, `season` records *when* a seasonal theme surfaces.
+Only `active` decides what renders — `rotation` changes nothing about
+rendering. **It is not displayed anywhere**: no badge, label, tooltip, filter,
+or search term, exactly like `environments`. Reassigning a theme means passing
+`rotation=` on its entry.
+
+Seasonal rotation, rotation metadata and environment recommendations are all
+controlled purely through theme data — no scheduling, no UI, no code changes
+needed to revise any of them.
+
+A theme may be inactive **only** if its rotation is `seasonal` or `archived`;
+an inactive `core` or `limited` theme is a validation error. Inactive themes
+keep their `display_order`, so `display_order` is unique and ascending but not
+contiguous — a rotated-out theme returns to its own slot.
 
 Run `python validate_themes.py --table` after any theme edit. It checks
-schema, uniqueness, RGB/hex agreement, moods, seasons, environments, and
-contrast, and enforces a floor of three themes per environment.
+schema, uniqueness, RGB/hex agreement, moods, seasons, rotations,
+environments, and contrast, and enforces a floor of three **active** themes
+per environment. The summary reports counts per rotation value and marks
+rotated-out themes with `*`.
+
+`EXPECTED_ACTIVE` in the validator is a deliberate tripwire: the active count
+is stated there, not derived from the data, so an accidental addition,
+removal, or rotation change fails the run. Update it only when the size change
+is intentional.
 
 `python validate_themes.py --similar` prints the perceptual similarity audit
 (sRGB → CIELAB → CIEDE2000, weighted background 50% / foreground 30% /
 cursor 20%) with the closest pairs. Development only — it is never rendered on
 the site. Use it before adding a theme to check it is not a near-duplicate.
+It compares active themes by default; add `--include-inactive` to compare
+across every defined theme, which is how a returning rotation theme is checked
+against the live collection before it goes active.
 
 ## Configuration
 

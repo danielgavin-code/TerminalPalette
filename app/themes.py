@@ -13,13 +13,26 @@ the functional values, which are held to WCAG contrast minimums
 (foreground >= 4.5:1, cursor >= 3:1 against background). Run
 `python validate_themes.py --table` to check.
 
-Seasonal rotation: every theme carries `active`, `season` and `display_order`.
-Only active themes are rendered. Rotating a set later means editing those data
-values only — there is no scheduling logic, no date reading, and no visible
-season filter.
+Seasonal rotation: every theme carries `active`, `season`, `rotation` and
+`display_order`. Only active themes are rendered. Rotating a set later means
+editing those data values only — there is no scheduling logic, no date
+reading, and no visible season filter.
+
+The two rotation fields answer different questions and are not
+interchangeable:
+
+  rotation  why the theme is in the collection (core/seasonal/limited/archived)
+  season    when a seasonal theme surfaces (permanent/spring/summer/autumn/winter)
+
+`rotation` is metadata only. It is never rendered, filtered on, or searched;
+`active` remains the single switch that decides what appears.
 """
 
 VALID_SEASONS = {"permanent", "spring", "summer", "autumn", "winter"}
+
+# Why a theme is in the collection. Distinct from `season`, which says when a
+# seasonal theme surfaces. Recorded for planning; nothing reads it at runtime.
+VALID_ROTATIONS = {"core", "seasonal", "limited", "archived"}
 
 # Internal-only environment recommendations. Never rendered, never filtered on,
 # never exposed in the interface — see ENVIRONMENTS below.
@@ -49,7 +62,8 @@ def _c(value):
 
 def _theme(display_order, theme_id, name, description, moods, category,
            background, foreground, cursor, palette, inspired_by, created,
-           featured=False, active=True, season="permanent", version="1.0"):
+           featured=False, active=True, season="permanent", rotation="core",
+           version="1.0"):
     return {
         "id": theme_id,
         "name": name,
@@ -65,6 +79,9 @@ def _theme(display_order, theme_id, name, description, moods, category,
         "version": version,
         "active": active,
         "season": season,
+        # Defaults to "core": every theme in the collection today is a core
+        # theme. Reassigning one means passing rotation= on its entry.
+        "rotation": rotation,
         "featured": featured,
         "display_order": display_order,
         # Filled in from ENVIRONMENTS once THEMES is built. Empty is valid.
@@ -103,7 +120,8 @@ THEMES = [
            ["minimal", "focused"], "Minimal",
            "#292B2D", "#C6C9CC", "#7C8F9E",
            ["#292B2D", "#424446", "#647785"],
-           "Pencil graphite", "May 18, 2025", featured=True),
+           "Pencil graphite", "May 18, 2025", featured=True,
+           active=False, season="winter", rotation="seasonal"),
     _theme(6, "forest", "Forest",
            "Dark green background with light neutral text.",
            ["calm", "focused"], "Calm",
@@ -128,7 +146,8 @@ THEMES = [
            ["calm", "cool", "minimal"], "Cool",
            "#E8E9E7", "#33383A", "#5F7480",
            ["#E8E9E7", "#B4BDC0", "#6E8089"],
-           "Fog over a harbor", "June 2, 2025"),
+           "Fog over a harbor", "June 2, 2025",
+           active=False, season="winter", rotation="seasonal"),
     _theme(10, "atlantic-dawn", "Atlantic Dawn",
            "Dark blue-gray background with a warm tan cursor.",
            ["cool", "calm"], "Cool",
@@ -140,7 +159,8 @@ THEMES = [
            ["calm", "minimal"], "Calm",
            "#2A3129", "#DDD9C9", "#9AA86B",
            ["#2A3129", "#5C6B4C", "#AEB98A"],
-           "Tidal marsh grass", "June 2, 2025"),
+           "Tidal marsh grass", "June 2, 2025",
+           active=False, season="summer", rotation="seasonal"),
     _theme(12, "coastal-slate", "Coastal Slate",
            "Dark gray background with a pale blue-green cursor.",
            ["cool", "minimal", "focused"], "Cool",
@@ -171,7 +191,8 @@ THEMES = [
            ["warm", "vintage"], "Warm",
            "#2B211B", "#E2D3C2", "#C08A57",
            ["#2B211B", "#6A4630", "#C08A57"],
-           "Cedar heartwood", "June 30, 2025"),
+           "Cedar heartwood", "June 30, 2025",
+           active=False, season="autumn", rotation="seasonal"),
     _theme(17, "olive-terminal", "Olive Terminal",
            "Dark olive background with a muted yellow-green cursor.",
            ["vintage", "focused"], "Vintage",
@@ -202,7 +223,8 @@ THEMES = [
            ["minimal", "focused"], "Minimal",
            "#202224", "#CCCECF", "#8C9195",
            ["#202224", "#3A3D40", "#8C9195"],
-           "Charcoal sticks", "July 7, 2025"),
+           "Charcoal sticks", "July 7, 2025",
+           active=False, season="winter", rotation="seasonal"),
     _theme(22, "night-shift", "Night Shift",
            "Very dark blue-gray background with a warm tan cursor.",
            ["late-night", "focused"], "Late Night",
@@ -234,13 +256,15 @@ THEMES = [
            ["vintage", "warm", "minimal"], "Vintage",
            "#F3EEE0", "#3A352B", "#8A6F42",
            ["#F3EEE0", "#DACDAE", "#8A6F42"],
-           "Aged parchment", "July 28, 2025"),
+           "Aged parchment", "July 28, 2025",
+           active=False, season="autumn", rotation="seasonal"),
     _theme(27, "ivory-console", "Ivory Console",
            "Ivory background with a muted olive-brown cursor.",
            ["minimal", "warm"], "Minimal",
            "#F7EFDA", "#35332D", "#6F6950",
            ["#F7EFDA", "#DCD6C4", "#7A7358"],
-           "Ivory console panels", "August 11, 2025"),
+           "Ivory console panels", "August 11, 2025",
+           active=False, season="summer", rotation="seasonal"),
     # --- 41-43: neutral, ruled, and dusk ----------------------------------
     _theme(28, "monochrome", "Monochrome",
            "Light gray background with a mid-gray cursor.",
