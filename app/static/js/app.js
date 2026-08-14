@@ -48,7 +48,45 @@
     ? Array.prototype.slice.call(el.grid.querySelectorAll('.theme-card'))
     : [];
 
-  var selected = THEMES.length ? THEMES[0].id : null;
+  /* ------------------------------------------------ shuffle ----- */
+
+  // Unbiased Fisher-Yates. Mutates the array it is handed, which is always a
+  // throwaway copy — never THEMES itself.
+  function shuffle(list) {
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var swap = list[i];
+      list[i] = list[j];
+      list[j] = swap;
+    }
+    return list;
+  }
+
+  // The browsing order for this page load, decided once. Every filter, search
+  // and pagination operation reads it; nothing reshuffles afterwards, so a new
+  // order appears only on a fresh page load. `display_order` in themes.py is
+  // untouched and remains the deterministic editorial order.
+  var ORDER = shuffle(THEMES.map(function (t) { return t.id; }));
+
+  // Move the server-rendered cards into the shuffled order. The markup is
+  // reused as-is — no card is re-rendered or duplicated in JavaScript.
+  function applyOrder() {
+    if (!el.grid || !CARDS.length) { return; }
+
+    var byId = {};
+    CARDS.forEach(function (card) { byId[card.getAttribute('data-id')] = card; });
+
+    var frag = document.createDocumentFragment();
+    ORDER.forEach(function (id) {
+      if (byId[id]) { frag.appendChild(byId[id]); }
+    });
+    el.grid.appendChild(frag);
+
+    // CARDS drives filtering and pagination, so it has to agree with the DOM.
+    CARDS = ORDER.map(function (id) { return byId[id]; }).filter(Boolean);
+  }
+
+  var selected = ORDER.length ? ORDER[0] : null;
   var mood = 'all';
   var query = '';
   var matching = [];
@@ -111,7 +149,9 @@
 
   /* ------------------------------------------------ selection ---- */
 
-  function selectTheme(id) {
+  // `silent` suppresses the live-region announcement for the selection made
+  // during initialisation, which the user did not ask for.
+  function selectTheme(id, silent) {
     var theme = BY_ID[id];
     if (!theme) { return; }
     selected = id;
@@ -139,7 +179,7 @@
     applyTerminal(el.mini, theme, '--mini-bg', '--mini-fg', '--mini-accent');
 
     renderFavorites();
-    announce(theme.name + ' selected');
+    if (!silent) { announce(theme.name + ' selected'); }
   }
 
   /* ------------------------------------------------ colours ----- */
@@ -403,8 +443,8 @@
   });
 
   /* ------------------------------------------------ init --------- */
-  // The hero terminal keeps its default charcoal palette until a theme is
-  // chosen; the mini preview reflects the selected theme from the start.
+  // Both previews, the RGB values and the details panel reflect the first
+  // theme in the shuffled order, so each page load opens on a different one.
   if (el.search) {
     el.search.addEventListener('input', function (e) { setQuery(e.target.value); });
     el.search.addEventListener('keydown', function (e) {
@@ -422,8 +462,8 @@
     else if (mq.addListener) { mq.addListener(onChange); }
   });
 
-  applyTerminal(el.mini, BY_ID[selected], '--mini-bg', '--mini-fg', '--mini-accent');
-  renderColors(BY_ID[selected]);
+  applyOrder();
+  if (selected) { selectTheme(selected, true); }
   renderFavorites();
   renderAppearance();
   applyFilters();

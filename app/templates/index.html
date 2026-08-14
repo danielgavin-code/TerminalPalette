@@ -185,7 +185,9 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
 
       <ul class="theme-grid" id="theme-grid">
         {% for theme in themes %}
-        <li class="theme-card{% if theme.id == initial.id %} is-selected{% endif %}" data-id="{{ theme.id }}">
+        {# No card is marked selected in the markup: app.js shuffles the order
+           on load and selects whichever theme lands first. #}
+        <li class="theme-card" data-id="{{ theme.id }}">
           <button type="button" class="card-fav" data-fav="{{ theme.id }}"
                   aria-pressed="false" aria-label="Add {{ theme.name }} to favorites">
             <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>
@@ -200,7 +202,7 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
           </span>
           <span class="card-foot">
             <button type="button" class="card-select" data-select="{{ theme.id }}"
-                    {% if theme.id == initial.id %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
+                    aria-pressed="false">
               View details
               <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"/></svg>
               <span class="sr-only"> for {{ theme.name }}</span>
