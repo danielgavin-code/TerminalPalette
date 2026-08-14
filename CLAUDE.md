@@ -61,6 +61,13 @@ not be collapsed: `palette` is the decorative three-swatch strip on the card;
 in the details panel. They may differ. Functional values are held to WCAG
 minimums — foreground 4.5:1 and cursor 3:1 against background.
 
+**4.5:1 is the gate; 7:1 is a preference, not a requirement.** The validator
+reports how many themes clear 7:1 and names those below it. Themes below 7:1
+are deliberate: a saturated or mid-tone background cannot reach 7:1, and that
+bar was what kept those grounds out of the collection. Do not "fix" a theme
+for appearing on that line — only a foreground below 4.5:1 or a cursor below
+3:1 is a failure.
+
 **Environment recommendations.** Every theme carries an `environments` list of
 optional internal recommendations, assigned in one table (`ENVIRONMENTS` in
 `app/themes.py`). Supported values: `production`, `uat`, `development`, `dr`,

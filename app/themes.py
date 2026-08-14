@@ -328,6 +328,51 @@ THEMES = [
            "#F7E6D6", "#3D3128", "#B85C2E",
            ["#F7E6D6", "#E5B48C", "#B85C2E"],
            "Ripe apricot skin", "September 1, 2025"),
+    # --- 38-44: saturated and mid-tone grounds ----------------------------
+    # This set is held to the 4.5:1 floor rather than the 7:1 preference, so
+    # the backgrounds can carry real chroma and mid-tone lightness.
+    _theme(38, "blueprint", "Blueprint",
+           "Saturated blue background with pale cyan text and a cyan cursor.",
+           ["cool", "focused"], "Cool",
+           "#123A6B", "#CFE6F5", "#6EC8E8",
+           ["#123A6B", "#2E5E96", "#6EC8E8"],
+           "Blueprint drawings", "September 8, 2025"),
+    _theme(39, "oxblood", "Oxblood",
+           "Deep wine background with warm ivory text and a coral cursor.",
+           ["warm", "late-night"], "Warm",
+           "#4A1526", "#F2E3DC", "#E5806B",
+           ["#4A1526", "#7C2A3C", "#E5806B"],
+           "Oxblood leather", "September 8, 2025"),
+    _theme(40, "bondi-glass", "Bondi Glass",
+           "Dark cyan background with an aqua cursor.",
+           ["cool", "vintage"], "Cool",
+           "#06404E", "#CDE8EE", "#4FD2E0",
+           ["#06404E", "#0E6C80", "#4FD2E0"],
+           "Translucent plastic enclosures", "September 8, 2025"),
+    _theme(41, "grape-shell", "Grape Shell",
+           "Aubergine background with pale lavender text and a magenta cursor.",
+           ["late-night", "focused"], "Late Night",
+           "#3B1E4A", "#E4D8EE", "#D96FBF",
+           ["#3B1E4A", "#63357A", "#D96FBF"],
+           "Tinted plastic shells", "September 8, 2025"),
+    _theme(42, "tangerine", "Tangerine",
+           "Terracotta background with cream text and a pale yellow cursor.",
+           ["warm", "vintage"], "Warm",
+           "#8A3E1E", "#FBEFD9", "#F5D98B",
+           ["#8A3E1E", "#C4693A", "#F5D98B"],
+           "Fired terracotta", "September 8, 2025"),
+    _theme(43, "plasma", "Plasma",
+           "Near-black background with orange-red text and cursor.",
+           ["vintage", "late-night"], "Vintage",
+           "#0A0708", "#E8663A", "#FF7A45",
+           ["#0A0708", "#5C2410", "#FF7A45"],
+           "Plasma displays", "September 8, 2025"),
+    _theme(44, "strawberry-frost", "Strawberry Frost",
+           "Muted coral background with dark plum text and a raspberry cursor.",
+           ["warm", "minimal"], "Warm",
+           "#E8B3AE", "#3B1F33", "#9B2F55",
+           ["#E8B3AE", "#D08A8C", "#9B2F55"],
+           "Frosted strawberry glass", "September 8, 2025"),
 ]
 
 
@@ -381,6 +426,11 @@ ENVIRONMENTS = {
     "golden-hour": ["dr"],           # amber/gold caution tone
     "whiskey": ["maintenance"],      # warm paper tone for planned work
     "seafoam": ["development"],      # green accent
+    # Saturated set: assigned only where the palette genuinely fits.
+    "blueprint": ["uat"],            # controlled blue, same convention as UAT
+    "oxblood": ["production"],       # dark ground, restrained red accent
+    "tangerine": ["dr"],             # orange caution tone
+    "plasma": ["dr"],                # orange-red caution tone
 }
 
 for _theme_entry in THEMES:

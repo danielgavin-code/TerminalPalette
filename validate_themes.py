@@ -67,7 +67,7 @@ ENV_FLOOR = 3
 # Deliberate tripwire, stated rather than derived: an accidental addition,
 # removal or rotation change fails the run instead of silently redefining the
 # collection. Update it only when the size change is intentional.
-EXPECTED_ACTIVE = 30
+EXPECTED_ACTIVE = 37
 
 # The only rotations allowed to sit inactive. A core or limited theme that is
 # not rendering is a mistake, not a rotation.
@@ -87,11 +87,13 @@ REQUIRED = (
 # Stated independently of app.themes so this verifies the assignments rather
 # than simply echoing them back.
 EXPECTED_ENVIRONMENTS = {
-    "production": {"closing-bell", "copper", "charcoal", "obsidian", "redwood"},
+    "production": {"closing-bell", "copper", "charcoal", "obsidian", "redwood",
+                   "oxblood"},
     "uat": {"blue-ledger", "ocean-glass", "harbor-fog", "arctic-glass",
-            "midnight-blue"},
+            "midnight-blue", "blueprint"},
     "development": {"evergreen", "forest", "sage-field", "salt-marsh", "seafoam"},
-    "dr": {"amber-terminal", "autumn-ledger", "cedar", "golden-hour"},
+    "dr": {"amber-terminal", "autumn-ledger", "cedar", "golden-hour",
+           "tangerine", "plasma"},
     "maintenance": {"data-center", "warm-paper", "parchment", "whiskey"},
     "neutral": {"graphite", "midnight-blue", "monochrome", "ivory-console",
                 "bloomberg-classic"},
