@@ -87,7 +87,40 @@
     CARDS = ORDER.map(function (id) { return byId[id]; }).filter(Boolean);
   }
 
-  var selected = ORDER.length ? ORDER[0] : null;
+  /* ------------------------------------------------ deep link --- */
+
+  // The hash names a theme, e.g. /#oxblood. Only ids in the active set are
+  // honoured; anything else is ignored without comment.
+  function hashId() {
+    var raw = window.location.hash.replace(/^#/, '');
+    if (!raw) { return null; }
+    var id;
+    try { id = decodeURIComponent(raw); } catch (e) { id = raw; }
+    return BY_ID[id] ? id : null;
+  }
+
+  // replaceState keeps the address bar in step without stacking history
+  // entries, and without the scroll jump that assigning location.hash causes.
+  function syncHash(id) {
+    if (!window.history || !window.history.replaceState) { return; }
+    try {
+      window.history.replaceState(window.history.state, '',
+        window.location.pathname + window.location.search + '#' + id);
+    } catch (e) {
+      /* Some sandboxed contexts refuse replaceState; selection still works. */
+    }
+  }
+
+  // The page holding the selected card. A linked theme moves pagination to
+  // its card; the shuffled order itself never moves.
+  function pageForSelected() {
+    var i = matching.indexOf(selected);
+    return i === -1 ? page : Math.floor(i / pageSize()) + 1;
+  }
+
+  // A hash naming an active theme wins over the shuffle for the opening
+  // selection. The shuffle still runs, and the order is unaffected.
+  var selected = hashId() || (ORDER.length ? ORDER[0] : null);
   var mood = 'all';
   var query = '';
   var matching = [];
@@ -181,7 +214,13 @@
     applyTerminal(el.mini, theme, '--mini-bg', '--mini-fg', '--mini-accent');
 
     renderFavorites();
-    if (!silent) { announce(theme.name + ' selected'); }
+    // `silent` also marks the load-time selection, which must not rewrite the
+    // address bar: a bare URL stays bare, so a reload still gets a fresh
+    // shuffle rather than pinning whatever was shown last.
+    if (!silent) {
+      syncHash(id);
+      announce(theme.name + ' selected');
+    }
   }
 
   /* ------------------------------------------------ colours ----- */
@@ -478,9 +517,27 @@
     else if (mq.addListener) { mq.addListener(onChange); }
   });
 
+  // Editing the hash, or arriving at a different one, selects that theme in
+  // place. Filters and search are left exactly as they are.
+  window.addEventListener('hashchange', function () {
+    var id = hashId();
+    if (!id || id === selected) { return; }
+    selectTheme(id);
+    // Only move pagination when the card is actually in the current result
+    // set; if a filter hides it, the panel updates and the grid stays put.
+    if (matching.indexOf(id) !== -1) {
+      page = pageForSelected();
+      render();
+    }
+  });
+
   applyOrder();
   if (selected) { selectTheme(selected, true); }
   renderFavorites();
   renderAppearance();
-  applyFilters();
+  // Not applyFilters(): that resets to page 1, which would strand a linked
+  // theme on a later page. Same work, then pagination opens on its card.
+  computeMatches();
+  page = pageForSelected();
+  render();
 })();
