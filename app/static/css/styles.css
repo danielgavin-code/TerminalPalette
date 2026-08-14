@@ -780,6 +780,32 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-2);
 }
 
+/* Quiet bordered control, same convention as .page-btn: rust only on the
+   label, no fill. align-self keeps it at its content width — .details is a
+   flex column, which would otherwise stretch it across the panel. No margin:
+   the column's 18px gap sets the rhythm. Focus falls through to the global
+   :focus-visible ring. */
+.download-btn {
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent);
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.download-btn:hover {
+  color: var(--accent-hover);
+  border-color: var(--border-hover);
+  background: var(--active);
+}
+
 .details-fav { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
 .fav-toggle {
   display: inline-flex;

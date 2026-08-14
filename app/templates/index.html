@@ -288,6 +288,16 @@ drwxr-xr-x   4 user   staff
       </dl>
     </section>
 
+    {# An anchor, not a button: the download works without JavaScript, and
+       app.js only re-points it when the selection changes. #}
+    <a class="download-btn" id="detail-download"
+       href="{{ url_for('main.theme_reg', theme_id=initial.id) }}"
+       data-url-template="{{ url_for('main.theme_reg', theme_id='__ID__') }}"
+       download
+       aria-label="Download .reg file for {{ initial.name }}">
+      Download .reg file
+    </a>
+
     <div class="details-fav">
       <button type="button" class="fav-toggle" id="detail-fav" aria-pressed="false">
         <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>

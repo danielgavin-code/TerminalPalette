@@ -26,6 +26,7 @@
     created:    document.getElementById('detail-created'),
     inspired:   document.getElementById('detail-inspired'),
     version:    document.getElementById('detail-version'),
+    download:   document.getElementById('detail-download'),
     detailFav:  document.getElementById('detail-fav'),
     favLabel:   document.getElementById('detail-fav-label'),
     favCount:   document.getElementById('favorite-count'),
@@ -173,6 +174,7 @@
     if (el.version) { el.version.textContent = theme.version; }
 
     renderColors(theme);
+    renderDownload(theme);
 
     // Terminals
     applyTerminal(el.terminal, theme, '--term-bg', '--term-fg', '--term-green');
@@ -204,6 +206,20 @@
         if (node) { node.textContent = String(colour.rgb[i]); }
       });
     });
+  }
+
+  /* ------------------------------------------------ download ---- */
+
+  // The URL shape comes from the template's url_for, so the route lives in
+  // routes.py alone and is never spelled out in JavaScript.
+  var DOWNLOAD_TEMPLATE = el.download
+    ? el.download.getAttribute('data-url-template')
+    : null;
+
+  function renderDownload(theme) {
+    if (!el.download || !DOWNLOAD_TEMPLATE) { return; }
+    el.download.href = DOWNLOAD_TEMPLATE.replace('__ID__', encodeURIComponent(theme.id));
+    el.download.setAttribute('aria-label', 'Download .reg file for ' + theme.name);
   }
 
   function applyTerminal(node, theme, bgVar, fgVar, accentVar) {
