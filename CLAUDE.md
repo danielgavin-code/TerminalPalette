@@ -14,13 +14,16 @@ Dependencies are exactly Flask and python-dotenv. See `requirements.txt`.
 
 ## Deployment
 
-DreamHost shared hosting via Passenger.
+DreamHost shared hosting, served via **CGI** — see **[DEPLOYMENT.md](DEPLOYMENT.md)**
+for the full setup, the deploy loop, and the theme rotation procedure.
 
-- `passenger_wsgi.py` — Passenger entry point. **Contains a TODO: the Python
-  interpreter path must be confirmed on the server before deployment works.**
-  It is deliberately left unset rather than guessed.
-- `wsgi.py` — exposes `application` for any WSGI server; imported by
-  `passenger_wsgi.py`.
+- `app.cgi` — the production entry point. `.htaccess` routes all non-file
+  requests to it. Contains server-specific absolute paths.
+- `.htaccess` — mod_rewrite rules that hand requests to `app.cgi`.
+- `passenger_wsgi.py` — **not used in production.** Passenger is not enabled;
+  its `INTERPRETER` is still an unset TODO. Kept as a record of the original
+  intent. Do not infer from its presence that Passenger is running.
+- `wsgi.py` — exposes `application` for any WSGI server; imported by `app.cgi`.
 - `run.py` — local dev server only, port 5001 (5000 is taken by FIXReader and
   macOS AirPlay Receiver).
 

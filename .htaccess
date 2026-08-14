@@ -1,0 +1,33 @@
+# =============================================================================
+# TerminalPalette — DreamHost shared hosting.
+#
+# Every request that is not an existing file or directory is handed to
+# app.cgi, which runs the Flask app. Static assets live under app/static/ and
+# do not exist at their public URL path, so they fall through to Flask too.
+#
+# Passenger is NOT used, despite passenger_wsgi.py being present in the repo.
+# See DEPLOYMENT.md.
+# =============================================================================
+
+Options +ExecCGI
+AddHandler cgi-script .cgi
+
+DirectoryIndex app.cgi
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Leave real files and directories alone; route everything else to the app.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ /app.cgi/$1 [QSA,L]
+</IfModule>
+
+# The app's own files are not web content.
+<FilesMatch "\.(py|pyc|md|cfg|example)$">
+  Require all denied
+</FilesMatch>
+
+<Files ".env">
+  Require all denied
+</Files>
