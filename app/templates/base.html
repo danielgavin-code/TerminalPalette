@@ -64,7 +64,12 @@
 <header class="site-header">
   <div class="header-inner">
 
-    <div class="brand">
+    {# The whole brand block is the home link: mark, name and tagline. No CSS
+       needed — the global `a` reset already drops the default colour and
+       underline, and `:focus-visible` supplies the same ring every other
+       control gets. The label keeps the announcement short; the tagline would
+       otherwise be read as part of the link name. #}
+    <a class="brand" href="{{ url_for('main.index') }}" aria-label="Terminal Palette, home">
       <span class="logo-mark" aria-hidden="true">
         <span></span><span></span><span></span><span></span>
       </span>
@@ -72,7 +77,7 @@
         <span class="brand-name">Terminal Palette</span>
         <span class="brand-tagline">PuTTY color palettes for readable, focused sessions.</span>
       </span>
-    </div>
+    </a>
 
     {# `page` comes from the view. #}
     <nav class="site-nav" aria-label="Primary">
