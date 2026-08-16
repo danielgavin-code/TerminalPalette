@@ -28,7 +28,10 @@ drwxr-xr-x   4 user   staff
        hex; hex remains the single stored representation in themes.py. #}
     <div class="color-groups" id="color-groups">
       {# Labels match PuTTY's own wording, including its British "Colour". #}
-      {% for key, label in [('background', 'Default Background'), ('foreground', 'Default Foreground'), ('cursor', 'Cursor Colour')] %}
+      {# Order matches PuTTY's own Colours panel, so the values are entered in
+         the order they are read. app.js addresses each group by data-chip /
+         data-ch, never by position, so this list is safe to reorder. #}
+      {% for key, label in [('foreground', 'Default Foreground'), ('background', 'Default Background'), ('cursor', 'Cursor Colour')] %}
       <section class="color-group" aria-labelledby="grp-{{ key }}">
         <div class="group-head">
           <h3 class="group-label" id="grp-{{ key }}">{{ label }}</h3>

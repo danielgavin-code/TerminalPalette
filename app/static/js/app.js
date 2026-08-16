@@ -335,7 +335,10 @@
   /* ------------------------------------------------ colours ----- */
 
   var CHANNELS = ['r', 'g', 'b'];
-  var GROUPS = ['background', 'foreground', 'cursor'];
+  // Iteration order only — every lookup below is by data-chip / data-ch, so
+  // nothing here depends on where a group sits in the panel. Listed in PuTTY's
+  // order to match the template.
+  var GROUPS = ['foreground', 'background', 'cursor'];
 
   // Each functional colour arrives from themes.py as {hex, rgb:[r,g,b]}.
   function rgbFor(key) {
