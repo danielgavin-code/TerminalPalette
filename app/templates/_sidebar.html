@@ -13,11 +13,16 @@
     </section>
 
 {% if moods %}
+    {# Same list on every route. Where there is a grid it filters in place;
+       elsewhere each mood is a link home that applies the filter on arrival,
+       so no page without a grid ever tries to filter one. The link form
+       carries no data-mood, so app.js leaves it alone and it just navigates. #}
     <nav class="moods" aria-label="Moods">
       <h2 class="rubric">Moods</h2>
       <ul>
         {% for mood in moods %}
         <li>
+          {% if page == 'explore' %}
           <button type="button" class="mood{% if loop.first %} is-selected{% endif %}"
                   data-mood="{{ mood.key }}"
                   {% if loop.first %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
@@ -25,6 +30,13 @@
             <span class="mood-label">{{ mood.label }}</span>
             <span class="mood-count">{{ mood.count }}</span>
           </button>
+          {% else %}
+          <a class="mood" href="{{ url_for('main.index') }}?mood={{ mood.key }}">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-{{ mood.icon }}"/></svg>
+            <span class="mood-label">{{ mood.label }}</span>
+            <span class="mood-count">{{ mood.count }}</span>
+          </a>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>

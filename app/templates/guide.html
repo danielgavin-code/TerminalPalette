@@ -1,9 +1,146 @@
 {% extends "page_base.html" %}
 
 {% block title %}Guide — Terminal Palette{% endblock %}
-{% block description %}How to apply Terminal Palette colour schemes in PuTTY.{% endblock %}
+{% block description %}How to enter Terminal Palette RGB values into PuTTY and save them to a session.{% endblock %}
 
 {% block article %}
-<h1 class="display">Guide</h1>
-<p class="lede">Installation instructions and colour guidance are coming shortly.</p>
+<h1 class="display">Set Up Your Colors in PuTTY</h1>
+
+<p class="lede">PuTTY has been around forever. Its menus still work exactly the way you expect them to.</p>
+
+<p class="lede">TerminalPalette gives you three colors:</p>
+
+<ul class="role-list">
+  <li><strong>Default Foreground</strong> — your text</li>
+  <li><strong>Default Background</strong> — your terminal</li>
+  <li><strong>Cursor Colour</strong> — your cursor</li>
+</ul>
+
+<p class="lede">Each is shown as the Red, Green, and Blue values PuTTY expects.</p>
+
+{# The whole process in six steps, for readers who already know PuTTY. No
+   diagram here on purpose — the ASCII belongs to the detailed sections. #}
+<section class="guide-step guide-summary" aria-labelledby="step-short">
+  <h2 class="rubric step-heading" id="step-short">The short version</h2>
+  <ol class="short-steps">
+    <li>Pick a palette on TerminalPalette.</li>
+    <li>Open PuTTY.</li>
+    <li>Select your saved session and click <strong>Load</strong>.</li>
+    <li>Go to:
+      <ul class="short-values">
+        <li><strong>Window → Colours</strong></li>
+      </ul>
+    </li>
+    <li>Enter the RGB values for:
+      <ul class="short-values">
+        <li>Default Foreground</li>
+        <li>Default Background</li>
+        <li>Cursor Colour</li>
+      </ul>
+    </li>
+    <li>Return to <strong>Session</strong> and click <strong>Save</strong>.</li>
+  </ol>
+  <p class="summary-note">That’s it. The walkthrough below shows each step.</p>
+  <p class="summary-note">Or download the .reg file from any theme and skip the typing.</p>
+</section>
+
+{# Where the summary ends and the walkthrough begins. #}
+<hr class="guide-rule">
+
+<section class="guide-step" aria-labelledby="step-pick">
+  <h2 class="rubric step-heading" id="step-pick">Pick a palette</h2>
+  <p class="lede">Choose a TerminalPalette theme and keep its RGB values handy.</p>
+{# Diagrams are plain text: alignment matters, so nothing here may be
+   re-indented by an editor. #}
+<pre class="ascii"><code>┌───────────────────────────────┐
+│ Default Foreground            │
+│                               │
+│ Red       230                 │
+│ Green     219                 │
+│ Blue      211                 │
+└───────────────────────────────┘</code></pre>
+  <p class="lede">There is nothing to convert. The numbers on TerminalPalette are the numbers you enter into PuTTY.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-session">
+  <h2 class="rubric step-heading" id="step-session">Open your PuTTY session</h2>
+  <p class="lede">Open PuTTY and select the saved session you want to change.</p>
+<pre class="ascii"><code>┌──────── PuTTY Configuration ────────┐
+│                                     │
+│ Saved Sessions                      │
+│ ┌───────────────────────────────┐   │
+│ │ production-server             │   │
+│ └───────────────────────────────┘   │
+│                                     │
+│             [ Load ]                │
+└─────────────────────────────────────┘</code></pre>
+  <p class="lede">Select the session and click <strong>Load</strong>.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-colours">
+  <h2 class="rubric step-heading" id="step-colours">Go to Window → Colours</h2>
+  <p class="lede">In PuTTY’s left menu:</p>
+<pre class="ascii"><code>Session
+│
+├── Window
+│   ├── Appearance
+│   ├── Behaviour
+│   ├── Translation
+│   └── Colours  ←
+│
+└── Connection</code></pre>
+  <p class="lede">Select Colours.</p>
+  <p class="lede">This is where PuTTY stores the terminal colors.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-values">
+  <h2 class="rubric step-heading" id="step-values">Enter the RGB values</h2>
+  <p class="lede">Start with <strong>Default Foreground</strong>.</p>
+  <p class="lede">Then do <strong>Default Background</strong>.</p>
+  <p class="lede">Then <strong>Cursor Colour</strong>.</p>
+  <p class="lede">For each one, copy the three numbers from TerminalPalette:</p>
+<pre class="ascii"><code>┌──────── Modify Colour ────────┐
+│                               │
+│ Red:      [ 230 ]             │
+│ Green:    [ 219 ]             │
+│ Blue:     [ 211 ]             │
+│                               │
+└───────────────────────────────┘</code></pre>
+  <p class="lede">Make sure <strong>Use system colours</strong> is turned off, or Windows may override the colors you entered.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-save">
+  <h2 class="rubric step-heading" id="step-save">Save it</h2>
+  <p class="lede">This part matters.</p>
+  <p class="lede">Return to Session in PuTTY.</p>
+<pre class="ascii"><code>Window → Colours
+       ↓
+    Session
+       ↓
+     SAVE</code></pre>
+  <p class="lede">Select the saved session you loaded earlier and click <strong>Save</strong>.</p>
+  <p class="lede">The next time you load that session, your colors come back with it.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-faster">
+  <h2 class="rubric step-heading" id="step-faster">The faster way</h2>
+  <p class="lede">Every theme has a .reg file you can download and double-click. It creates a PuTTY session with the colors already set. The manual steps above are here for when you would rather not import anything, or you are updating a session you already use.</p>
+</section>
+
+<section class="guide-step" aria-labelledby="step-done">
+  <h2 class="rubric step-heading" id="step-done">Done</h2>
+  <p class="lede">That’s the whole process:</p>
+<pre class="ascii"><code>PICK A PALETTE
+      ↓
+LOAD YOUR SESSION
+      ↓
+WINDOW → COLOURS
+      ↓
+ENTER THE RGB VALUES
+      ↓
+SAVE THE SESSION
+      ↓
+$ _</code></pre>
+  <p class="lede">Nine numbers and a PuTTY session that looks the way you want it. If you would rather skip the typing, download the .reg file from any theme.</p>
+</section>
 {% endblock %}

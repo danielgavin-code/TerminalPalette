@@ -95,7 +95,13 @@
 /* -------------------------------------------------- 2. Reset ----- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* Reserve the scrollbar track on every page, so the right panel does not
+     jump sideways when a short route (About, Look Book) has no scrollbar and
+     a tall one (Explore) does. No-op where scrollbars overlay. */
+  scrollbar-gutter: stable;
+}
 
 body {
   margin: 0;
@@ -297,6 +303,13 @@ a { color: inherit; text-decoration: none; }
 
 /* -------------------------------------------------- 6. Workspace - */
 .workspace {
+  /* width:100% is load-bearing. body is a flex column, and the auto side
+     margins below suppress align-items:stretch — without a definite cross
+     size the workspace shrink-to-fits its content, so a short route (About)
+     rendered ~860px wide and centred while Explore rendered the full 1440px.
+     A definite 100% fills the line; max-width still caps it and the auto
+     margins still centre it once the viewport passes --shell. */
+  width: 100%;
   max-width: var(--shell);
   margin: 0 auto;
   display: grid;
@@ -331,15 +344,91 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Article column inside the workspace centre. The centre column already
-   carries the gutter padding, so this only sets the measure. */
+   carries the gutter padding, so this only sets the reading measure — it
+   never moves or resizes the column itself, whose geometry is .workspace's
+   alone. The cap stays: a full 836px line is too long to read comfortably. */
 .article {
   width: 100%;
-  max-width: 680px;
+  max-width: 760px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 .article .display { font-size: 27px; }
+
+/* Guide: each step groups its heading, copy and diagram a little tighter than
+   the article's own rhythm. Type comes from .display, .rubric and .lede. */
+.guide-step {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 20px;
+}
+/* One clear level above the inline role labels: same eyebrow language as
+   .rubric, but darker, heavier, wider-tracked and given room above. The
+   inline <strong> stays at paragraph size, so the step reads as the header
+   of the block rather than another bold phrase inside it. */
+.step-heading {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: var(--text);
+  padding-bottom: 2px;
+}
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--text-2);
+}
+/* The short version. Numbers carry the sequence, so the list keeps its
+   markers — no flex here, which would put marker rendering at risk. */
+.short-steps {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--text-2);
+}
+.short-steps li + li { margin-top: 5px; }
+.short-values { margin-top: 3px; }
+/* The summary is boxed so it is the first thing seen after the title. Same
+   panel language as the ASCII blocks: subtle border, panel ground, 3px
+   corners, both mode-driven. Its own padding replaces .guide-step's. */
+.guide-summary {
+  padding: 15px 17px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--panel);
+}
+.summary-note { font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+/* Where the summary ends and the walkthrough begins. */
+.guide-rule {
+  margin: 4px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.article strong { color: var(--text); font-weight: 600; }
+
+/* Plain-text diagrams. They scroll inside their own box rather than widening
+   the column, and stay copyable as text — no highlighting, no images. */
+.ascii {
+  margin: 0;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+.ascii code { font: inherit; color: inherit; }
 
 /* -------------------------------------------------- 7. Sidebar --- */
 .sidebar-intro { display: flex; flex-direction: column; gap: 10px; }
@@ -849,6 +938,17 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--border-hover);
   background: var(--active);
 }
+
+/* Understated rust link under the download button. Focus falls through to the
+   global :focus-visible ring. */
+.panel-link {
+  align-self: start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--accent);
+  transition: color .15s ease;
+}
+.panel-link:hover { color: var(--accent-hover); }
 
 .details-fav { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
 .fav-toggle {

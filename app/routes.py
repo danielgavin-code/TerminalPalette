@@ -24,8 +24,9 @@ def index():
 # child-template `set` reaching the parent.
 #
 # The article pages carry the same sidebar and details panel, so they need the
-# collection and a seed theme too. They pass no `moods`: without a theme grid
-# there is nothing to filter, so the sidebar omits that list. The seed is the
+# collection, the mood list and a seed theme. `moods` gives them the same
+# sidebar as the homepage — with no grid to filter, the partial renders each
+# mood as a link home that applies the filter on arrival. The seed is the
 # display-order first theme; app.js swaps in the stored selection if there is
 # one. These pages never shuffle.
 def _article(template, page):
@@ -33,6 +34,7 @@ def _article(template, page):
         template,
         page=page,
         themes=active_themes(),
+        moods=build_moods(),
         initial=initial_theme(),
     )
 

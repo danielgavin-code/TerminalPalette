@@ -84,6 +84,12 @@ drwxr-xr-x   4 user   staff
       Download .reg file
     </a>
 
+    {# Sits with the download button: both answer "how do I use this?".
+       Omitted on the guide itself rather than shown as a dead self-link. #}
+    {% if page != 'guide' %}
+    <a class="panel-link" href="{{ url_for('main.guide') }}">How to set these colors in PuTTY →</a>
+    {% endif %}
+
     <div class="details-fav">
       <button type="button" class="fav-toggle" id="detail-fav" aria-pressed="false">
         <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>

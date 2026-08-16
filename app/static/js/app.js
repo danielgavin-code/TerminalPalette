@@ -166,8 +166,9 @@
   // grid behaviour: the shuffle, filters, pagination and hash linking.
   var HAS_GRID = !!el.grid;
 
-  // The last selection, carried to the article pages. Never consulted on the
-  // homepage, where the shuffle and the hash decide.
+  // The last selection, carried across pages and reloads. A stale or
+  // rotated-out id fails the BY_ID test and is ignored; the next selection
+  // overwrites it, so nothing has to be cleaned up explicitly.
   function storedSelection() {
     try {
       var id = window.localStorage.getItem(SELECTED_KEY);
@@ -185,12 +186,16 @@
     }
   }
 
-  // Homepage: a hash naming an active theme wins over the shuffle, and the
-  // shuffle decides otherwise. Article pages: the stored selection, falling
-  // back to the first theme in display_order. They never shuffle.
-  var selected = HAS_GRID
-    ? (hashId() || (ORDER.length ? ORDER[0] : null))
-    : (storedSelection() || (THEMES.length ? THEMES[0].id : null));
+  // Opening selection, in order of precedence:
+  //   1. a URL hash naming an active theme
+  //   2. the stored selection, if it is still active
+  //   3. the first theme in shuffled order (homepage) or display order
+  // Only the selection is persisted — the grid still reshuffles every load,
+  // and a stored theme is never moved to the front of it.
+  var selected = hashId()
+    || storedSelection()
+    || (HAS_GRID && ORDER.length ? ORDER[0] : null)
+    || (THEMES.length ? THEMES[0].id : null);
   var mood = 'all';
   var query = '';
   // Never persisted: a reload always returns to All Themes.
@@ -651,23 +656,47 @@
   // ?view=favorites arrives from the header link on the article pages. A theme
   // hash still wins, exactly as it does today. The parameter is stripped once
   // applied so a reload returns to All Themes — the view is never persisted.
+  // Strips the query string once a parameter has been applied, so a reload
+  // returns to the default view. Never persisted.
+  function clearQuery() {
+    if (!window.history || !window.history.replaceState) { return; }
+    try {
+      window.history.replaceState(window.history.state, '',
+        window.location.pathname + window.location.hash);
+    } catch (e) {
+      /* Sandboxed context; the parameter simply stays in the address bar. */
+    }
+  }
+
   function openFavoritesFromQuery() {
     if (!HAS_GRID) { return false; }
     if (window.location.search.indexOf('view=favorites') === -1) { return false; }
-    if (window.history && window.history.replaceState) {
-      try {
-        window.history.replaceState(window.history.state, '',
-          window.location.pathname + window.location.hash);
-      } catch (e) {
-        /* Sandboxed context; the parameter simply stays in the address bar. */
-      }
-    }
+    clearQuery();
     return !hashId();
   }
+
+  // ?mood=<key> arrives from the sidebar mood links on the pages without a
+  // grid. Only a key this page actually offers is honoured.
+  function moodFromQuery() {
+    if (!HAS_GRID) { return null; }
+    var match = /[?&]mood=([^&]+)/.exec(window.location.search);
+    if (!match) { return null; }
+    var key;
+    try { key = decodeURIComponent(match[1]); } catch (e) { key = match[1]; }
+    var known = document.querySelector('[data-mood="' + key + '"]');
+    clearQuery();
+    return known ? key : null;
+  }
+
   var openFavorites = openFavoritesFromQuery();
+  // Favourites is the more specific view, so it wins if both are present.
+  var openMood = openFavorites ? null : moodFromQuery();
   renderFavorites();
   if (HAS_GRID && openFavorites) {
     setFavoritesView(true);
+  } else if (HAS_GRID && openMood) {
+    // setMood() runs the normal filter pipeline and resets to page 1.
+    setMood(openMood);
   } else if (HAS_GRID) {
     // Not applyFilters(): that resets to page 1, which would strand a linked
     // theme on a later page. Same work, then pagination opens on its card.
