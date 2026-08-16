@@ -5,10 +5,14 @@
     <h2 class="details-title" id="detail-name">{{ initial.name }}</h2>
 
     <div class="mini-term" id="mini-terminal">
+      {# Same Windows controls as the large preview, scaled down — this is a
+         PuTTY site, so both windows read as the same operating system. #}
       <div class="mini-bar" aria-hidden="true">
-        <span class="dot dot-rust"></span>
-        <span class="dot dot-amber"></span>
-        <span class="dot dot-green"></span>
+        <span class="mini-controls">
+          <svg class="icon"><use href="#i-win-min"/></svg>
+          <svg class="icon"><use href="#i-win-max"/></svg>
+          <svg class="icon"><use href="#i-close"/></svg>
+        </span>
       </div>
       <div class="mini-scroll">
 <pre class="mini-body"><span class="tprompt">user@host:~ $</span> ls -la

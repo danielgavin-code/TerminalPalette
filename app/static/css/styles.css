@@ -28,15 +28,23 @@
   --accent-solid:       #B95735;
   --accent-solid-hover: #98452C;
 
-  /* Terminal colours are theme-driven and never follow light/dark mode.
-     The window chrome is fixed for the same reason. */
+  /* Terminal palette colours are theme-driven and never follow light/dark
+     mode: the swatch a user copies into PuTTY must not shift with the site. */
   --term-bg:     #151718;
   --term-fg:     #E6E2D9;
   --term-green:  #8FB673;
   --term-blue:   #667C87;
-  --term-chrome:      #E4E0D8;
-  --term-chrome-line: #CFCAC1;
-  --term-chrome-text: #4A4741;
+  /* The simulated Windows chrome DOES follow the site appearance, so the
+     preview reads as a window on the user's own desktop. Light values here,
+     dark overrides in the data-theme block — which the inline <head> script
+     sets before this stylesheet loads, so there is no flash of the wrong
+     frame. Colour only: no dimension, padding, border-width or radius may
+     differ between the two modes. */
+  --window-titlebar-bg:   #F0F0F0;
+  --window-titlebar-text: #333333;
+  --window-border:        #C4C4C4;
+  --window-control:       #444444;
+  --window-shadow:        0 8px 22px rgba(23, 23, 20, .13);
 
   /* Typography and layout metrics are mode-independent and MUST stay in the
      base :root block — the dark block below overrides colour tokens only. */
@@ -75,6 +83,13 @@
   --icon-muted:    #8B857C;
 
   --accent-solid-hover: #A94E2F;
+
+  /* Dark Windows frame. Colour values only — geometry is set once above. */
+  --window-titlebar-bg:   #2B2B2B;
+  --window-titlebar-text: #E0E0E0;
+  --window-border:        #3F3F3F;
+  --window-control:       #D6D6D6;
+  --window-shadow:        0 8px 22px rgba(0, 0, 0, .38);
 }
 
 /* -------------------------------------------------- 2. Reset ----- */
@@ -407,11 +422,13 @@ a { color: inherit; text-decoration: none; }
 .hero-copy .display { font-size: 33px; }
 
 /* -------------------------------------------------- 9. Terminal -- */
+/* Frame and title bar follow the site appearance; everything inside the
+   scroll area is theme-driven and does not. */
 .terminal {
-  border: 1px solid #34383A;
+  border: 1px solid var(--window-border);
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 8px 22px rgba(23, 23, 20, .13);
+  box-shadow: var(--window-shadow);
   background: var(--term-bg);
   min-width: 0;
 }
@@ -421,17 +438,17 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--term-chrome);
-  border-bottom: 1px solid var(--term-chrome-line);
+  background: var(--window-titlebar-bg);
+  border-bottom: 1px solid var(--window-border);
   padding: 0 10px;
   height: 30px;
 }
 .terminal-title {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--term-chrome-text);
+  color: var(--window-titlebar-text);
 }
-.terminal-controls { display: flex; align-items: center; gap: 14px; color: var(--term-chrome-text); }
+.terminal-controls { display: flex; align-items: center; gap: 14px; color: var(--window-control); }
 .terminal-controls .icon { stroke-width: 1.4; }
 
 .terminal-scroll { overflow-x: auto; }
@@ -665,23 +682,29 @@ a { color: inherit; text-decoration: none; }
 }
 
 .mini-term {
-  border: 1px solid var(--border);
+  border: 1px solid var(--window-border);
   border-radius: 4px;
   overflow: hidden;
   background: var(--mini-bg, var(--panel));
 }
+/* Same Windows controls as the large preview, scaled down and right-aligned.
+   10px icons with 7px padding hold the 24px bar height the dots had. */
 .mini-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
-  padding: 8px 10px;
-  background: var(--term-chrome);
-  border-bottom: 1px solid var(--term-chrome-line);
+  padding: 7px 10px;
+  background: var(--window-titlebar-bg);
+  border-bottom: 1px solid var(--window-border);
 }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: block; }
-.dot-rust  { background: var(--accent); }
-.dot-amber { background: #D9A15C; }
-.dot-green { background: var(--term-green); }
+.mini-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--window-control);
+}
+.mini-controls .icon { width: 10px; height: 10px; stroke-width: 1.6; }
 
 .mini-scroll { overflow-x: auto; }
 .mini-body {
