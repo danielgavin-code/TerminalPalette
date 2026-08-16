@@ -44,6 +44,37 @@
   <p class="summary-note">Or download the .reg file from any theme and skip the typing.</p>
 </section>
 
+{# The selected palette, rendered. Same mini-terminal component as the
+   details panel; app.js sets the three custom properties from the same
+   selected theme, so nothing here names a colour. #}
+<figure class="guide-preview">
+  <div class="mini-term" id="guide-terminal">
+    <div class="mini-bar" aria-hidden="true">
+      <span class="mini-controls">
+        <svg class="icon"><use href="#i-win-min"/></svg>
+        <svg class="icon"><use href="#i-win-max"/></svg>
+        <svg class="icon"><use href="#i-close"/></svg>
+      </span>
+    </div>
+    <div class="mini-scroll">
+<pre class="mini-body"><span class="tprompt">user@host:~ $</span> ls -la
+drwxr-xr-x   4 user   staff
+-rw-r--r--   1 user   staff
+-rw-r--r--   1 user   staff
+<span class="tprompt">user@host:~ $</span> <span class="tcursor" aria-hidden="true"></span></pre>
+    </div>
+  </div>
+  <figcaption class="ascii-caption">
+    <span class="ascii-swatch" data-guide-swatch="background" aria-hidden="true"></span>
+    <span class="ascii-swatch" data-guide-swatch="foreground" aria-hidden="true"></span>
+    <span class="ascii-swatch" data-guide-swatch="cursor" aria-hidden="true"></span>
+    <span data-guide-name>{{ initial.name }}</span>: background
+    <span data-guide-values="background">{{ initial.background.rgb|join(', ') }}</span>,
+    foreground <span data-guide-values="foreground">{{ initial.foreground.rgb|join(', ') }}</span>,
+    cursor <span data-guide-values="cursor">{{ initial.cursor.rgb|join(', ') }}</span>.
+  </figcaption>
+</figure>
+
 {# Where the summary ends and the walkthrough begins. #}
 <hr class="guide-rule">
 
@@ -52,13 +83,18 @@
   <p class="lede">Choose a TerminalPalette theme and keep its RGB values handy.</p>
 {# Diagrams are plain text: alignment matters, so nothing here may be
    re-indented by an editor. #}
-<pre class="ascii"><code>┌───────────────────────────────┐
+<pre class="ascii ascii-live" data-guide-accent="foreground"><code>┌───────────────────────────────┐
 │ Default Foreground            │
 │                               │
-│ Red       230                 │
-│ Green     219                 │
-│ Blue      211                 │
+│ Red       <span data-guide-rgb="foreground-r">{{ '%3d'|format(initial.foreground.rgb[0]) }}</span>                 │
+│ Green     <span data-guide-rgb="foreground-g">{{ '%3d'|format(initial.foreground.rgb[1]) }}</span>                 │
+│ Blue      <span data-guide-rgb="foreground-b">{{ '%3d'|format(initial.foreground.rgb[2]) }}</span>                 │
 └───────────────────────────────┘</code></pre>
+  <p class="ascii-caption">
+    <span class="ascii-swatch" data-guide-swatch="foreground" aria-hidden="true"></span>
+    <span data-guide-name>{{ initial.name }}</span> — Default Foreground
+    <span data-guide-values="foreground">{{ initial.foreground.rgb|join(', ') }}</span>
+  </p>
   <p class="lede">There is nothing to convert. The numbers on TerminalPalette are the numbers you enter into PuTTY.</p>
 </section>
 
@@ -99,13 +135,19 @@
   <p class="lede">Then do <strong>Default Background</strong>.</p>
   <p class="lede">Then <strong>Cursor Colour</strong>.</p>
   <p class="lede">For each one, copy the three numbers from TerminalPalette:</p>
-<pre class="ascii"><code>┌──────── Modify Colour ────────┐
+<pre class="ascii ascii-live" data-guide-accent="foreground"><code>┌──────── Modify Colour ────────┐
 │                               │
-│ Red:      [ 230 ]             │
-│ Green:    [ 219 ]             │
-│ Blue:     [ 211 ]             │
+│ Red:      [ <span data-guide-rgb="foreground-r">{{ '%3d'|format(initial.foreground.rgb[0]) }}</span> ]             │
+│ Green:    [ <span data-guide-rgb="foreground-g">{{ '%3d'|format(initial.foreground.rgb[1]) }}</span> ]             │
+│ Blue:     [ <span data-guide-rgb="foreground-b">{{ '%3d'|format(initial.foreground.rgb[2]) }}</span> ]             │
 │                               │
 └───────────────────────────────┘</code></pre>
+  <p class="ascii-caption">
+    <span class="ascii-swatch" data-guide-swatch="foreground" aria-hidden="true"></span>
+    Default Foreground for <span data-guide-name>{{ initial.name }}</span> —
+    <span data-guide-values="foreground">{{ initial.foreground.rgb|join(', ') }}</span>.
+    The other two roles use their own values.
+  </p>
   <p class="lede">Make sure <strong>Use system colours</strong> is turned off, or Windows may override the colors you entered.</p>
 </section>
 

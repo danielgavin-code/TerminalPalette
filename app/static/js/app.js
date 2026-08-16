@@ -301,6 +301,7 @@
 
     renderEnvironments(theme);
     renderColors(theme);
+    renderGuide(theme);
     renderDownload(theme);
 
     // Terminals
@@ -376,6 +377,43 @@
     if (!el.download || !DOWNLOAD_TEMPLATE) { return; }
     el.download.href = DOWNLOAD_TEMPLATE.replace('__ID__', encodeURIComponent(theme.id));
     el.download.setAttribute('aria-label', 'Download .reg file for ' + theme.name);
+  }
+
+  /* ------------------------------------------------ guide ------- */
+
+  // The guide's examples read the same selected theme as everything else —
+  // no guide-only state, no second copy of the theme data. Values are padded
+  // to a 3-character field so the ASCII box borders stay straight whatever
+  // the number is.
+  function pad3(value) {
+    var s = String(value);
+    return s.length >= 3 ? s : new Array(4 - s.length).join(' ') + s;
+  }
+
+  function renderGuide(theme) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-guide-rgb]'), function (node) {
+      var parts = node.getAttribute('data-guide-rgb').split('-');
+      var colour = theme[parts[0]];
+      if (colour) { node.textContent = pad3(colour.rgb[CHANNELS.indexOf(parts[1])]); }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-guide-values]'), function (node) {
+      var colour = theme[node.getAttribute('data-guide-values')];
+      if (colour) { node.textContent = colour.rgb.join(', '); }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-guide-swatch]'), function (node) {
+      var colour = theme[node.getAttribute('data-guide-swatch')];
+      if (colour) { node.style.background = colour.hex; }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-guide-accent]'), function (node) {
+      var colour = theme[node.getAttribute('data-guide-accent')];
+      if (colour) { node.style.setProperty('--guide-accent', colour.hex); }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-guide-name]'), function (node) {
+      node.textContent = theme.name;
+    });
+    // Same component as the details panel, same three custom properties.
+    applyTerminal(document.getElementById('guide-terminal'), theme,
+      '--mini-bg', '--mini-fg', '--mini-accent');
   }
 
   function applyTerminal(node, theme, bgVar, fgVar, accentVar) {
