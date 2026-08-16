@@ -24,6 +24,16 @@ drwxr-xr-x   4 user   staff
       </div>
     </div>
 
+    {# Sits with the preview: favouriting is about the theme on screen, not
+       about the metadata further down. Same markup, same ids — app.js finds
+       it by #detail-fav, never by position. #}
+    <div class="details-fav">
+      <button type="button" class="fav-toggle" id="detail-fav" aria-pressed="false">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>
+        <span id="detail-fav-label">Add to favorites</span>
+      </button>
+    </div>
+
     {# PuTTY-style decimal RGB. Values are filled in by app.js from the theme
        hex; hex remains the single stored representation in themes.py. #}
     <div class="color-groups" id="color-groups">
@@ -89,12 +99,5 @@ drwxr-xr-x   4 user   staff
     {% if page != 'guide' %}
     <a class="panel-link" href="{{ url_for('main.guide') }}">How to set these colors in PuTTY →</a>
     {% endif %}
-
-    <div class="details-fav">
-      <button type="button" class="fav-toggle" id="detail-fav" aria-pressed="false">
-        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-heart"/></svg>
-        <span id="detail-fav-label">Add to favorites</span>
-      </button>
-    </div>
 
   </div>
