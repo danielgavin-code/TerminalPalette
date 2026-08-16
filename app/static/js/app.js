@@ -30,6 +30,9 @@
     headerFav:  document.getElementById('header-favorites'),
     live:       document.getElementById('live-region'),
     empty:      document.getElementById('grid-empty'),
+    emptyTitle: document.getElementById('grid-empty-title'),
+    emptyHint:  document.getElementById('grid-empty-hint'),
+    gridTitle:  document.getElementById('themes-title'),
     appLabel:   document.getElementById('appearance-label'),
     appHint:    document.getElementById('appearance-hint'),
     appHeader:  document.getElementById('appearance-header'),
@@ -190,6 +193,8 @@
     : (storedSelection() || (THEMES.length ? THEMES[0].id : null));
   var mood = 'all';
   var query = '';
+  // Never persisted: a reload always returns to All Themes.
+  var favoritesView = false;
   var matching = [];
   var page = 1;
   var favorites = loadFavorites();
@@ -221,13 +226,24 @@
     if (i === -1) { favorites.push(id); } else { favorites.splice(i, 1); }
     saveFavorites();
     renderFavorites();
+    // In Favorites view an unfavourited card leaves the result set at once.
+    // render() re-clamps the page, refreshes the count, and reselects when the
+    // selected card is no longer on screen.
+    if (favoritesView) {
+      computeMatches();
+      render();
+    }
     announce(BY_ID[id].name + (isFavorite(id) ? ' added to favorites' : ' removed from favorites'));
   }
 
   function renderFavorites() {
     if (el.favCount) { el.favCount.textContent = String(favorites.length); }
-    if (el.headerFav) {
-      el.headerFav.setAttribute('aria-pressed', favorites.length > 0 ? 'true' : 'false');
+    // aria-pressed reports the view, not whether any favourites exist; the
+    // existing .icon-btn[aria-pressed="true"] rule supplies the active state.
+    if (el.headerFav && el.headerFav.tagName === 'BUTTON') {
+      el.headerFav.setAttribute('aria-pressed', favoritesView ? 'true' : 'false');
+      el.headerFav.setAttribute('aria-label',
+        favoritesView ? 'Show all themes' : 'View favorites');
     }
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-fav]'), function (btn) {
@@ -375,8 +391,11 @@
       .replace(/-/g, ' ') + ' ' + t.moods.join(' ').toLowerCase();
   });
 
-  // Mood and search resolve through this one predicate. A theme must pass both.
+  // Favorites, mood and search resolve through this one predicate; a theme
+  // must pass all three. Favorites view is a filter, not a separate mode, so
+  // pagination, counting and rendering below are untouched by it.
   function matchesFilters(theme) {
+    if (favoritesView && !isFavorite(theme.id)) { return false; }
     if (mood !== 'all' && theme.moods.indexOf(mood) === -1) { return false; }
     if (!query) { return true; }
     return HAYSTACK[theme.id].indexOf(query) !== -1;
@@ -439,7 +458,16 @@
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
-    if (el.empty) { el.empty.hidden = matching.length > 0; }
+    if (el.empty) {
+      el.empty.hidden = matching.length > 0;
+      if (el.emptyTitle) {
+        el.emptyTitle.textContent = favoritesView
+          ? 'No favorite themes yet.'
+          : 'No themes in this mood.';
+      }
+      // The hint only makes sense against an empty Favorites view.
+      if (el.emptyHint) { el.emptyHint.hidden = !favoritesView; }
+    }
     if (el.clear) { el.clear.hidden = !query; }
     // The count always reports total matches, never the current page.
     if (el.count) {
@@ -463,6 +491,20 @@
     page = 1;
     computeMatches();
     render();
+  }
+
+  // Entering or leaving resets mood and search to a known state, so the view
+  // is always deterministic. applyFilters() then resets to page 1.
+  function setFavoritesView(on) {
+    favoritesView = !!on;
+    mood = 'all';
+    query = '';
+    // Set directly rather than via clearSearch(), which would steal focus.
+    if (el.search) { el.search.value = ''; }
+    if (el.gridTitle) { el.gridTitle.textContent = favoritesView ? 'Favorites' : 'Themes'; }
+    renderFavorites();
+    applyFilters();
+    announce(favoritesView ? 'Showing favorites' : 'Showing all themes');
   }
 
   function setMood(key) {
@@ -548,6 +590,13 @@
 
     if (el.clear && e.target.closest('#search-clear')) { clearSearch(); return; }
 
+    // Only the homepage's button toggles; the article pages render an anchor,
+    // which is left to navigate.
+    if (HAS_GRID && e.target.closest('#header-favorites')) {
+      setFavoritesView(!favoritesView);
+      return;
+    }
+
     if (e.target.closest('#page-prev')) { goToPage(page - 1); return; }
     if (e.target.closest('#page-next')) { goToPage(page + 1); return; }
 
@@ -595,8 +644,28 @@
 
   applyOrder();
   if (selected) { selectTheme(selected, true); }
+
+  // ?view=favorites arrives from the header link on the article pages. A theme
+  // hash still wins, exactly as it does today. The parameter is stripped once
+  // applied so a reload returns to All Themes — the view is never persisted.
+  function openFavoritesFromQuery() {
+    if (!HAS_GRID) { return false; }
+    if (window.location.search.indexOf('view=favorites') === -1) { return false; }
+    if (window.history && window.history.replaceState) {
+      try {
+        window.history.replaceState(window.history.state, '',
+          window.location.pathname + window.location.hash);
+      } catch (e) {
+        /* Sandboxed context; the parameter simply stays in the address bar. */
+      }
+    }
+    return !hashId();
+  }
+  var openFavorites = openFavoritesFromQuery();
   renderFavorites();
-  if (HAS_GRID) {
+  if (HAS_GRID && openFavorites) {
+    setFavoritesView(true);
+  } else if (HAS_GRID) {
     // Not applyFilters(): that resets to page 1, which would strand a linked
     // theme on a later page. Same work, then pagination opens on its card.
     computeMatches();

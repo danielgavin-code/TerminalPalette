@@ -290,7 +290,9 @@ a { color: inherit; text-decoration: none; }
 }
 .icon-btn:hover { color: var(--text); background: var(--active); }
 .icon-btn .count { font-size: 12px; font-variant-numeric: tabular-nums; }
-.icon-btn[aria-pressed="true"] { color: var(--accent); }
+/* Favorites view active: rust, filled heart, and the same soft background the
+   hover state uses. Nothing louder. */
+.icon-btn[aria-pressed="true"] { color: var(--accent); background: var(--active); }
 .icon-btn[aria-pressed="true"] .icon { fill: currentColor; }
 
 /* -------------------------------------------------- 6. Workspace - */
@@ -606,6 +608,11 @@ a { color: inherit; text-decoration: none; }
   font-size: 12.5px;
   color: var(--text-2);
 }
+/* Two lines in Favorites view: the message, then a quieter hint. `display`
+   here would beat the user-agent [hidden] rule, so the hint needs its own. */
+#grid-empty-title { display: block; color: var(--text); }
+.grid-empty-hint { display: block; margin-top: 5px; color: var(--text-2); }
+.grid-empty-hint[hidden] { display: none; }
 
 .theme-card.is-selected {
   border-color: var(--accent);

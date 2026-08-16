@@ -91,11 +91,23 @@
 
     <div class="header-controls">
       <span class="v-rule" aria-hidden="true"></span>
-      <button type="button" class="icon-btn" id="header-favorites">
+      {# On the homepage this toggles the grid into Favorites view. The other
+         pages have no grid, so it links home and opens that view on arrival;
+         there it only reports the count. #}
+      {% if page == 'explore' %}
+      <button type="button" class="icon-btn" id="header-favorites"
+              aria-pressed="false" aria-label="View favorites">
         <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>
         <span class="count" id="favorite-count">0</span>
-        <span class="sr-only">favorites saved</span>
       </button>
+      {% else %}
+      <a class="icon-btn" id="header-favorites"
+         href="{{ url_for('main.index') }}?view=favorites"
+         aria-label="View favorites">
+        <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>
+        <span class="count" id="favorite-count">0</span>
+      </a>
+      {% endif %}
       <span class="v-rule" aria-hidden="true"></span>
       <button type="button" class="icon-btn appearance-btn" id="appearance-header">
         <svg class="icon ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>

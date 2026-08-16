@@ -87,7 +87,12 @@ drwxr-xr-x   3 user   staff   4096 May 18 10:40 projects
         </li>
         {% endfor %}
       </ul>
-      <p class="grid-empty" id="grid-empty" hidden>No themes in this mood.</p>
+      {# One empty state, two messages: app.js sets the line and reveals the
+         hint only in Favorites view. #}
+      <p class="grid-empty" id="grid-empty" hidden>
+        <span id="grid-empty-title">No themes in this mood.</span>
+        <span class="grid-empty-hint" id="grid-empty-hint" hidden>Select the heart on a theme to save it here.</span>
+      </p>
 
       <nav class="pagination" id="pagination" aria-label="Theme pages" hidden>
         <button type="button" class="page-btn page-prev" id="page-prev" aria-label="Previous page">
